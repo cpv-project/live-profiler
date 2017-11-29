@@ -60,7 +60,7 @@ namespace LiveProfiler {
 		/* Remove analyzer from analyzer list, return whether the analyzer is in the list */
 		bool removeAnalyzer(const AnalyzerType& analyzer) {
 			auto it = std::remove(analyzers_.begin(), analyzers_.end(), analyzer);
-			auto removed = it == analyzers_.end();
+			auto removed = it != analyzers_.end();
 			analyzers_.erase(it, analyzers_.end());
 			return removed;
 		}

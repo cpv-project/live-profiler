@@ -81,7 +81,11 @@ namespace LiveProfilerTests {
 		assert(analyzerA->getResult() == 0);
 		assert(analyzerB->getResult() == 0);
 
-		profiler.removeAnalyzer(analyzerB);
+		auto removedFirst = profiler.removeAnalyzer(analyzerB);
+		auto removedSecond = profiler.removeAnalyzer(analyzerB);
+		assert(removedFirst);
+		assert(!removedSecond);
+
 		profiler.collectFor(std::chrono::milliseconds(20));
 		assert(!collector->enabled);
 		assert(analyzerA->getResult() > 0);
