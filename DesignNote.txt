@@ -1,0 +1,12 @@
+Profiler<ExecutionSampleModel> profiler;
+auto perfCollector = profiler.useCollector<ExecutionSamplePerfCollector>();
+auto coutingAnalyzer = profiler.addAnalyzer<ExecutionSampleCoutingAnalyzer>();
+auto hotPathAnalyzer = profiler.addAnalyzer<ExecutionSampleHotPathAnalyzer>();
+
+perfCollector.filterByProcessName("a.out");
+profiler.reset();
+profiler.collectFor(std::chrono::seconds(100));
+
+auto coutingResult = coutingAnalyzer.getResult();
+auto hotPathResult = hotPathAnalyzer.getResult();
+

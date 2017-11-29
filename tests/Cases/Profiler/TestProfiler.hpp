@@ -1,0 +1,4 @@
+namespace LiveProfilerTests {
+	void testProfiler();
+}
+
