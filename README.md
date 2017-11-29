@@ -24,7 +24,7 @@ TODO
 
 # License
 
-LICENSE: MIT LICENSE
-Copyright © 2017 303248153@github
+LICENSE: MIT LICENSE<br/>
+Copyright © 2017 303248153@github<br/>
 If you have any license issue please contact 303248153@qq.com.
 
