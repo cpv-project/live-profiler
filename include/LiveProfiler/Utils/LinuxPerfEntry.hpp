@@ -2,36 +2,42 @@
 #include <unistd.h>
 #include <linux/perf_event.h>
 #include <sys/mman.h>
-#include <atomic>
 #include <vector>
 
 namespace LiveProfiler {
 	/** Class contains perf_events releated data */
 	class LinuxPerfEntry {
 	public:
-		::perf_event_attr& getAttrRef() & {
-			return attr_;
-		}
-		
-		/** Close file descriptor and unmap memory */
+		/** Getters and setters */
+		::perf_event_attr& getAttrRef() & { return attr_; }
+		pid_t getPid() const { return pid_; }
+		void setPid(pid_t pid) { pid_ = pid; }
+		int getFd() const { return fd_; }
+		void setFd(int fd) { fd_ = fd; }
+		std::size_t getMmapPageSize() const { return mmapPageSize_; }
+		std::size_t getMmapPageCount() const { return mmapPageCount_; }
+
+		/** Unmap mmap address and close file descriptor */
 		void freeResources() {
+			if (mmapAddress_ != nullptr) {
+				::munmap(mmapAddress_, mmapPageSize_ * mmapPageCount_);
+				mmapAddress_ = nullptr;
+			}
 			if (fd_ != 0) {
 				::close(fd_);
-				::munmap(mmapBuffer_.data(), mmapBuffer_.size());
 				fd_ = 0;
 			}
 		}
 
 		/** Reset to initial state */
-		void reset(std::size_t mmapBufferPages, std::size_t pageSize) {
+		void reset(std::size_t mmapPageCount) {
 			freeResources();
 			attr_ = {};
 			pid_ = 0;
 			fd_ = 0;
-			lastReadOffset_ = pageSize;
-			pageSize_ = pageSize;
-			mmapBuffer_.resize(mmapBufferPages * pageSize);
-			std::fill(mmapBuffer_.begin(), mmapBuffer_.end(), 0);
+			mmapPageCount_ = mmapPageCount;
+			mmapReadIndex_ = 0;
+			mmapAddress_ = nullptr;
 		}
 
 		/** Constructor */
@@ -39,9 +45,10 @@ namespace LiveProfiler {
 			attr_(),
 			pid_(0),
 			fd_(0),
-			lastReadOffset_(0),
-			pageSize_(0),
-			mmapBuffer_() { }
+			mmapPageSize_(::getpagesize()),
+			mmapPageCount_(0),
+			mmapReadIndex_(0),
+			mmapAddress_(nullptr) { }
 
 		/** Destructor */
 		~LinuxPerfEntry() {
@@ -50,11 +57,12 @@ namespace LiveProfiler {
 
 	protected:
 		::perf_event_attr attr_;
-		std::atomic_int pid_;
-		std::atomic_int fd_;
-		std::atomic_size_t lastReadOffset_;
-		std::size_t pageSize_;
-		std::vector<char> mmapBuffer_;
+		pid_t pid_;
+		int fd_;
+		std::size_t mmapPageSize_;
+		std::size_t mmapPageCount_;
+		std::size_t mmapReadIndex_;
+		char* mmapAddress_;
 	};
 }
 

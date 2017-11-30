@@ -6,6 +6,10 @@ namespace LiveProfiler {
 	/** Class used to allocate and reuse LinuxPerfEntry instances */
 	class LinuxPerfEntryAllocator {
 	public:
+		/** Getters and setters */
+		std::size_t getMmapPageCount() const { return mmapPageCount_; }
+		void setMmapPageCount(std::size_t count) { mmapPageCount_ = count; }
+
 		/** Allocate LinuxPerfEntry instance */
 		std::unique_ptr<LinuxPerfEntry> allocate() {
 			std::unique_ptr<LinuxPerfEntry> entry;
@@ -15,7 +19,7 @@ namespace LiveProfiler {
 				entry = std::move(freeEntries_.back());
 				freeEntries_.pop_back();
 			}
-			entry->reset(mmapBufferPages_, pageSize_);
+			entry->reset(mmapPageCount_);
 			return entry;
 		}
 
@@ -26,15 +30,13 @@ namespace LiveProfiler {
 		}
 
 		/** Constructor */
-		LinuxPerfEntryAllocator(std::size_t mmapBufferPages) :
+		LinuxPerfEntryAllocator(std::size_t mmapPageCount) :
 			freeEntries_(),
-			pageSize_(::getpagesize()),
-			mmapBufferPages_(mmapBufferPages) { }
+			mmapPageCount_(mmapPageCount) { }
 
 	protected:
 		std::vector<std::unique_ptr<LinuxPerfEntry>> freeEntries_;
-		std::size_t pageSize_;
-		std::size_t mmapBufferPages_;
+		std::size_t mmapPageCount_;
 	};
 }
 

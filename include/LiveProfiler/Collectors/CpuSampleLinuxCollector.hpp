@@ -15,8 +15,14 @@ namespace LiveProfiler {
 	 */
 	class CpuSampleLinuxCollector : public BaseCollector<CpuSampleModel> {
 	public:
-		/** Default mmap buffer pages for perf_events */
-		static const std::size_t DefaultMmapBufferPages = 8;
+		/**
+		 * The default value pass to LinuxPerfEntryAllocator.
+		 * The page 0 is metadata page(perf_event_mmap_page).
+		 * The remaining pages are ring buffer.
+		 */
+		static const std::size_t DefaultMmapPageCount = 32;
+		/** The default value set to perf_event_attr::sample_period */
+		static const std::size_t DefaultSamplePeriod = 100000;
 
 		/** Reset the state to it's initial state */
 		void reset() override {
@@ -50,15 +56,15 @@ namespace LiveProfiler {
 			// TODO
 		}
 
-		/** Constructor */
-		CpuSampleLinuxCollector() :
-			result_(),
-			filter_(),
-			processes_(),
-			processesUpdated_(),
-			processesUpdateInterval_(std::chrono::milliseconds(100)),
-			pidToPerfEntry_(),
-			perfEntryAllocator_(DefaultMmapBufferPages) { }
+		/** Set how many pages for mmap ring buffer, the count contains metadata page */
+		void setMmapPageCount(std::size_t mmapPageCount) {
+			perfEntryAllocator_.setMmapPageCount(mmapPageCount);
+		}
+
+		/** Set how often to take a sample, the unit is cpu clock */
+		void setSamplePeriod(std::size_t samplePeriod) {
+			samplePeriod_ = samplePeriod;
+		}
 
 		/** Set how often to update the list of processes */
 		template <class Rep, class Period>
@@ -77,6 +83,17 @@ namespace LiveProfiler {
 			filterProcessBy(LinuxProcessUtils::getProcessFilterByName(name));
 		}
 
+		/** Constructor */
+		CpuSampleLinuxCollector() :
+			result_(),
+			filter_(),
+			processes_(),
+			processesUpdated_(),
+			processesUpdateInterval_(std::chrono::milliseconds(100)),
+			pidToPerfEntry_(),
+			perfEntryAllocator_(DefaultMmapPageCount),
+			samplePeriod_(DefaultSamplePeriod) { }
+
 	protected:
 		/** Update the processes to monitor based on the latest list */
 		void updatePerfEvents() {
@@ -87,6 +104,10 @@ namespace LiveProfiler {
 					continue;
 				}
 				// monitor this process
+				auto entry = perfEntryAllocator_.allocate();
+				entry->setPid(pid);
+				LinuxPerfUtils::monitorCpuSample(entry, samplePeriod_);
+				pidToPerfEntry_.emplace(pid, std::move(entry));
 			}
 			// find out which processes no longer exist
 		}
@@ -99,6 +120,7 @@ namespace LiveProfiler {
 		std::chrono::high_resolution_clock::duration processesUpdateInterval_;
 		std::unordered_map<pid_t, std::unique_ptr<LinuxPerfEntry>> pidToPerfEntry_;
 		LinuxPerfEntryAllocator perfEntryAllocator_;
+		std::size_t samplePeriod_;
 	};
 }
 
