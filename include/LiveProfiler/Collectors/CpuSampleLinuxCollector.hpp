@@ -1,18 +1,12 @@
 #pragma once
-#include <sys/types.h>
-#include <unistd.h>
-#include <dirent.h>
-#include <cstdlib>
-#include <cstdio>
-#include <array>
+#include <linux/perf_event.h>
 #include <atomic>
 #include <chrono>
-#include <functional>
+#include <unordered_map>
 #include "BaseCollector.hpp"
 #include "../Models/CpuSampleModel.hpp"
-#include "../Exceptions/ProfilerException.hpp"
-
-#include <thread>
+#include "../Utils/LinuxProcessUtils.hpp"
+#include "../Utils/LinuxPerfUtils.hpp"
 
 namespace LiveProfiler {
 	/**
@@ -20,6 +14,9 @@ namespace LiveProfiler {
 	 */
 	class CpuSampleLinuxCollector : public BaseCollector<CpuSampleModel> {
 	public:
+		/** Default mmap buffer pages for perf_events */
+		static const std::size_t DefaultMmapBufferPages = 8;
+
 		/** Reset the state to it's initial state */
 		void reset() override {
 			// TODO
@@ -33,16 +30,17 @@ namespace LiveProfiler {
 		/** Collect performance data for the specified timeout period */
 		const std::vector<CpuSampleModel>& collect(
 			std::chrono::high_resolution_clock::duration timeout) override {
-			updateProcesses();
-			// list all process and apply filter
-			// find process difference
-			// - remove process that not exist
-			// - add process newly created
-			// poll event
+			// update the processes to monitor every specified interval
+			auto now = std::chrono::high_resolution_clock::now();
+			if (now - processesUpdated_ > processesUpdateInterval_) {
+				LinuxProcessUtils::listProcesses(processes_, filter_);
+				updatePerfEvents();
+				processesUpdated_ = now;
+			}
+			// poll events
 			// - read from mmap
 			// - convert to model
 			// TODO
-			std::this_thread::sleep_for(std::chrono::seconds(1));
 			return result_;
 		}
 
@@ -57,7 +55,16 @@ namespace LiveProfiler {
 			filter_(),
 			processes_(),
 			processesUpdated_(),
-			processesUpdateInterval_() { }
+			processesUpdateInterval_(std::chrono::milliseconds(100)),
+			pidToPerfEntry_(),
+			perfEntryAllocator_(DefaultMmapBufferPages) { }
+
+		/** Set how often to update the list of processes */
+		template <class Rep, class Period>
+		void setProcessesUpdateInterval(std::chrono::duration<Rep, Period> interval) {
+			processesUpdateInterval_ = std::chrono::duration_cast<
+				std::decay_t<decltype(processesUpdateInterval_)>>(interval);
+		}
 
 		/** Use the specified function to decide which processes to monitor */
 		void filterProcessBy(const std::function<bool(pid_t)>& filter) {
@@ -66,65 +73,21 @@ namespace LiveProfiler {
 
 		/** Use the specified process name to decide which processes to monitor */
 		void filterProcessByName(const std::string& name) {
-			// reuse some variables to avoid memory allocation
-			filterProcessBy([name,
-				path=std::string(),
-				target=std::string(),
-				buf=std::array<char, 100>()](pid_t pid) mutable {
-				// build string /proc/pid/exe
-				std::snprintf(buf.data(), buf.size(), "%d", pid);
-				path.clear();
-				path.append("/proc/");
-				path.append(buf.data());
-				path.append("/exe");
-				// read link target
-				target.resize(PATH_MAX);
-				auto len = ::readlink(path.c_str(), &target.front(), target.size() - 1);
-				if (len <= 0) {
-					return false;
-				}
-				target.resize(len);
-				// determine is process name matched
-				// name should be case sensitive and complete
-				auto index = target.find(name);
-				if (index == target.npos || index == 0 ||
-					target[index-1] != '/' || index+name.size() != target.size()) {
-					return false;
-				}
-				return true;
-			});
+			filterProcessBy(LinuxProcessUtils::getProcessFilterByName(name));
 		}
 
 	protected:
-		/** List all processes and determine which processes are of interest */
-		void updateProcesses() {
-			// open /proc
-			::DIR* procDir = ::opendir("/proc");
-			if (procDir == nullptr) {
-				throw ProfilerException("open /proc failed");
-			}
-			std::unique_ptr<::DIR, int(*)(DIR*)> procDirPtr(procDir, ::closedir);
-			// clear previous processes
-			processes_.clear();
-			// list directories under /proc
-			::dirent* entry = nullptr;
-			while ((entry = ::readdir(procDirPtr.get())) != nullptr) {
-				if ((entry->d_type & DT_DIR) == 0) {
+		/** Update the processes to monitor based on the latest list */
+		void updatePerfEvents() {
+			std::sort(processes_.begin(), processes_.end());
+			// find out which processes newly created
+			for (pid_t pid : processes_) {
+				if (pidToPerfEntry_.find(pid) != pidToPerfEntry_.end()) {
 					continue;
 				}
-				// check the directory name is valid pid
-				char* endptr = nullptr;
-				pid_t pid = std::strtol(entry->d_name, &endptr, 10);
-				if (endptr == nullptr || endptr == entry->d_name) {
-					continue;
-				}
-				// apply filter
-				if (filter_ && filter_(pid)) {
-					processes_.emplace_back(pid);
-					std::cout << pid << std::endl;
-				}
+				// monitor this process
 			}
-			processesUpdated_ = std::chrono::high_resolution_clock::now();
+			// find out which processes no longer exist
 		}
 
 	protected:
@@ -133,7 +96,8 @@ namespace LiveProfiler {
 		std::vector<pid_t> processes_;
 		std::chrono::high_resolution_clock::time_point processesUpdated_;
 		std::chrono::high_resolution_clock::duration processesUpdateInterval_;
-
+		std::unordered_map<pid_t, std::unique_ptr<LinuxPerfEntry>> pidToPerfEntry_;
+		LinuxPerfEntryAllocator perfEntryAllocator_;
 	};
 }
 

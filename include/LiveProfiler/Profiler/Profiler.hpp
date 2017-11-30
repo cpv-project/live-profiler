@@ -97,9 +97,6 @@ namespace LiveProfiler {
 		}
 	
 	protected:
-		CollectorType collector_;
-		std::vector<AnalyzerType> analyzers_;
-
 		/** Disable copy */
 		Profiler(const Profiler&) = delete;
 		Profiler& operator=(const Profiler&) = delete;
@@ -115,6 +112,10 @@ namespace LiveProfiler {
 				collector_->disable();
 			}
 		};
+
+	protected:
+		CollectorType collector_;
+		std::vector<AnalyzerType> analyzers_;
 	};
 }
 
