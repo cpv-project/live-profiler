@@ -25,7 +25,7 @@ namespace LiveProfiler {
 
 		/** Collect performance data for the specified timeout period */
 		virtual const std::vector<Model>& collect(
-			std::chrono::high_resolution_clock::duration timeout) = 0;
+			std::chrono::high_resolution_clock::duration timeout) & = 0;
 
 		/** Disable performance data collection */
 		virtual void disable() = 0;

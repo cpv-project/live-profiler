@@ -18,7 +18,7 @@ namespace LiveProfilerTests {
 			void enable() override { enabled = true; }
 			void disable() override { enabled = false; }
 			const std::vector<MinimalModel>& collect(
-				std::chrono::high_resolution_clock::duration timeout) override {
+				std::chrono::high_resolution_clock::duration timeout) & override {
 				result.clear();
 				auto start = std::chrono::high_resolution_clock::now();
 				while (result.size() < 5 &&
