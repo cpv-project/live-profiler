@@ -1,6 +1,7 @@
 #include "./Cases/Profiler/TestProfiler.hpp"
 #include "./Cases/Collectors/TestCpuSampleLinuxCollector.hpp"
 #include "./Cases/Utils/TestLinuxProcessUtils.hpp"
+#include "./Cases/Utils/TestLinuxPerfEntryAllocator.hpp"
 #include "./Cases/Utils/TestLinuxPerfUtils.hpp"
 
 namespace LiveProfilerTests {
@@ -8,6 +9,7 @@ namespace LiveProfilerTests {
 		testProfiler();
 		testCpuSampleLinuxCollector();
 		testLinuxProcessUtils();
+		testLinuxPerfEntryAllocator();
 		testLinuxPerfUtils();
 	}
 }

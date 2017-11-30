@@ -6,6 +6,7 @@
 #include "BaseCollector.hpp"
 #include "../Models/CpuSampleModel.hpp"
 #include "../Utils/LinuxProcessUtils.hpp"
+#include "../Utils/LinuxPerfEntryAllocator.hpp"
 #include "../Utils/LinuxPerfUtils.hpp"
 
 namespace LiveProfiler {
