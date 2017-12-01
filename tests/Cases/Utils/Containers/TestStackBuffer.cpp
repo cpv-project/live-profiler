@@ -1,6 +1,6 @@
 #include <iostream>
 #include <cassert>
-#include <LiveProfiler/Utils/StackBuffer.hpp>
+#include <LiveProfiler/Utils/Containers/StackBuffer.hpp>
 
 namespace LiveProfilerTests {
 	using namespace LiveProfiler;

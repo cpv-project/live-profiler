@@ -1,5 +1,5 @@
 #pragma once
 namespace LiveProfilerTests {
-	void testLinuxPerfEntryAllocator();
+	void testFreeListAllocator();
 }
 

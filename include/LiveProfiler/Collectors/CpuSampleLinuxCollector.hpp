@@ -5,8 +5,9 @@
 #include <unordered_map>
 #include "BaseCollector.hpp"
 #include "../Models/CpuSampleModel.hpp"
+#include "../Utils/Allocators/FreeListAllocator.hpp"
 #include "../Utils/LinuxProcessUtils.hpp"
-#include "../Utils/LinuxPerfEntryAllocator.hpp"
+#include "../Utils/LinuxPerfEntry.hpp"
 #include "../Utils/LinuxPerfUtils.hpp"
 
 namespace LiveProfiler {
@@ -15,14 +16,10 @@ namespace LiveProfiler {
 	 */
 	class CpuSampleLinuxCollector : public BaseCollector<CpuSampleModel> {
 	public:
-		/**
-		 * The default value pass to LinuxPerfEntryAllocator.
-		 * The page 0 is metadata page(perf_event_mmap_page).
-		 * The remaining pages are ring buffer.
-		 */
+		/** Default parameters */
 		static const std::size_t DefaultMmapPageCount = 32;
-		/** The default value set to perf_event_attr::sample_period */
 		static const std::size_t DefaultSamplePeriod = 100000;
+		static const std::size_t DefaultMaxFreePerfEntry = 1024;
 
 		/** Reset the state to it's initial state */
 		void reset() override {
@@ -57,14 +54,14 @@ namespace LiveProfiler {
 			// TODO
 		}
 
-		/** Set how many pages for mmap ring buffer, the count contains metadata page */
-		void setMmapPageCount(std::size_t mmapPageCount) {
-			perfEntryAllocator_.setMmapPageCount(mmapPageCount);
-		}
-
 		/** Set how often to take a sample, the unit is cpu clock */
 		void setSamplePeriod(std::size_t samplePeriod) {
 			samplePeriod_ = samplePeriod;
+		}
+
+		/** Set how many pages for mmap ring buffer, this count not contains metadata page */
+		void setMmapPageCount(std::size_t mmapPageCount) {
+			mmapPageCount_ = mmapPageCount;
 		}
 
 		/** Set how often to update the list of processes */
@@ -92,8 +89,9 @@ namespace LiveProfiler {
 			processesUpdated_(),
 			processesUpdateInterval_(std::chrono::milliseconds(100)),
 			pidToPerfEntry_(),
-			perfEntryAllocator_(DefaultMmapPageCount),
-			samplePeriod_(DefaultSamplePeriod) { }
+			perfEntryAllocator_(DefaultMaxFreePerfEntry),
+			samplePeriod_(DefaultSamplePeriod),
+			mmapPageCount_(DefaultMmapPageCount) { }
 
 	protected:
 		/** Update the processes to monitor based on the latest list */
@@ -120,8 +118,9 @@ namespace LiveProfiler {
 		std::chrono::high_resolution_clock::time_point processesUpdated_;
 		std::chrono::high_resolution_clock::duration processesUpdateInterval_;
 		std::unordered_map<pid_t, std::unique_ptr<LinuxPerfEntry>> pidToPerfEntry_;
-		LinuxPerfEntryAllocator perfEntryAllocator_;
+		FreeListAllocator<LinuxPerfEntry> perfEntryAllocator_;
 		std::size_t samplePeriod_;
+		std::size_t mmapPageCount_;
 	};
 }
 

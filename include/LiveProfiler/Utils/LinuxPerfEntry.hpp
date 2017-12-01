@@ -5,7 +5,14 @@
 #include <vector>
 
 namespace LiveProfiler {
-	/** Class contains perf_events releated data */
+	/**
+	 * Class contains perf_events releated data.
+	 * MMAP layout:
+	 * - first page, type is perf_event_mmap_page*
+	 * - ring buffer, element size is indeterminate
+	 * mmapDataAddress = mmapStartAddress + pageSize
+	 * mmapDataSize = mmapTotalSize - pageSize
+	 */
 	class LinuxPerfEntry {
 	public:
 		/** Getters and setters */
@@ -14,14 +21,13 @@ namespace LiveProfiler {
 		void setPid(pid_t pid) { pid_ = pid; }
 		int getFd() const { return fd_; }
 		void setFd(int fd) { fd_ = fd; }
-		std::size_t getMmapPageSize() const { return mmapPageSize_; }
-		std::size_t getMmapPageCount() const { return mmapPageCount_; }
 
 		/** Unmap mmap address and close file descriptor */
 		void freeResources() {
-			if (mmapAddress_ != nullptr) {
-				::munmap(mmapAddress_, mmapPageSize_ * mmapPageCount_);
-				mmapAddress_ = nullptr;
+			if (mmapStartAddress_ != nullptr) {
+				::munmap(mmapStartAddress_, mmapTotalSize_);
+				mmapStartAddress_ = nullptr;
+				mmapDataAddress_ = nullptr;
 			}
 			if (fd_ != 0) {
 				::close(fd_);
@@ -30,14 +36,28 @@ namespace LiveProfiler {
 		}
 
 		/** Reset to initial state */
-		void reset(std::size_t mmapPageCount) {
+		void reset() {
 			freeResources();
 			attr_ = {};
 			pid_ = 0;
 			fd_ = 0;
-			mmapPageCount_ = mmapPageCount;
-			mmapReadIndex_ = 0;
-			mmapAddress_ = nullptr;
+			mmapStartAddress_ = nullptr;
+			mmapDataAddress_ = nullptr;
+			mmapTotalSize_ = 0;
+			mmapDataSize_ = 0;
+			mmapReadOffset_ = 0;
+		}
+
+		/** Set the address from mmap on fd */
+		void setMmapAddress(
+			char* mmapStartAddress,
+			std::size_t mmapTotalSize,
+			std::size_t pageSize) {
+			mmapStartAddress_ = mmapStartAddress;
+			mmapDataAddress_ = mmapStartAddress + pageSize;
+			mmapTotalSize_ = mmapTotalSize;
+			mmapDataSize_ = mmapTotalSize - pageSize;
+			mmapReadOffset_ = 0;
 		}
 
 		/** Constructor */
@@ -45,10 +65,11 @@ namespace LiveProfiler {
 			attr_(),
 			pid_(0),
 			fd_(0),
-			mmapPageSize_(::getpagesize()),
-			mmapPageCount_(0),
-			mmapReadIndex_(0),
-			mmapAddress_(nullptr) { }
+			mmapStartAddress_(nullptr),
+			mmapDataAddress_(nullptr),
+			mmapTotalSize_(0),
+			mmapDataSize_(0),
+			mmapReadOffset_(0) { }
 
 		/** Destructor */
 		~LinuxPerfEntry() {
@@ -59,10 +80,11 @@ namespace LiveProfiler {
 		::perf_event_attr attr_;
 		pid_t pid_;
 		int fd_;
-		std::size_t mmapPageSize_;
-		std::size_t mmapPageCount_;
-		std::size_t mmapReadIndex_;
-		char* mmapAddress_;
+		char* mmapStartAddress_;
+		char* mmapDataAddress_;
+		std::size_t mmapTotalSize_;
+		std::size_t mmapDataSize_;
+		std::size_t mmapReadOffset_;
 	};
 }
 

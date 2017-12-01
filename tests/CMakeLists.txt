@@ -1,7 +1,7 @@
 cmake_minimum_required (VERSION 2.8.11)
 project (LiveProfilerTest)
 
-FILE(GLOB TestCases ./Cases/*/*.cpp)
+FILE(GLOB_RECURSE TestCases ./Cases/*.cpp)
 add_executable(${PROJECT_NAME} ${TestCases} Main.cpp)
 
 include_directories(../include)

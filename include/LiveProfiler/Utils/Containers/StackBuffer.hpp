@@ -1,6 +1,6 @@
 #pragma once
 #include <cstring>
-#include "TypeConvertUtils.hpp"
+#include "../TypeConvertUtils.hpp"
 
 namespace LiveProfiler {
 	/** Default initialized array allocated on stack, with offset recorded */

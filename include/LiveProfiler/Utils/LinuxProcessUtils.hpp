@@ -10,7 +10,7 @@
 #include <memory>
 #include <functional>
 #include "../Exceptions/ProfilerException.hpp"
-#include "../Utils/StackBuffer.hpp"
+#include "../Utils/Containers/StackBuffer.hpp"
 #include "../Utils/TypeConvertUtils.hpp"
 
 namespace LiveProfiler {
