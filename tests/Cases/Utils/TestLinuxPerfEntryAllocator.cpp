@@ -20,7 +20,7 @@ namespace LiveProfilerTests {
 			assert(entry->getPid() == 0);
 			assert(entry->getFd() == 0);
 			assert(entry->getMmapPageCount() == defaultCount+i+1);
-			assert(entry->getMmapPageSize() == ::getpagesize());
+			assert(entry->getMmapPageSize() == static_cast<std::size_t>(::getpagesize()));
 			allocator.deallocate(std::move(entry));
 		}
 	}

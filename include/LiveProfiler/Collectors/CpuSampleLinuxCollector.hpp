@@ -40,7 +40,8 @@ namespace LiveProfiler {
 			// update the processes to monitor every specified interval
 			auto now = std::chrono::high_resolution_clock::now();
 			if (now - processesUpdated_ > processesUpdateInterval_) {
-				LinuxProcessUtils::listProcesses(processes_, filter_);
+				processes_.clear();
+				LinuxProcessUtils::listProcesses(processes_, filter_, true);
 				updatePerfEvents();
 				processesUpdated_ = now;
 			}

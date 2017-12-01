@@ -3,6 +3,8 @@
 #include "./Cases/Utils/TestLinuxProcessUtils.hpp"
 #include "./Cases/Utils/TestLinuxPerfEntryAllocator.hpp"
 #include "./Cases/Utils/TestLinuxPerfUtils.hpp"
+#include "./Cases/Utils/TestStackBuffer.hpp"
+#include "./Cases/Utils/TestTypeConvertUtils.hpp"
 
 namespace LiveProfilerTests {
 	void testAll() {
@@ -11,6 +13,8 @@ namespace LiveProfilerTests {
 		testLinuxProcessUtils();
 		testLinuxPerfEntryAllocator();
 		testLinuxPerfUtils();
+		testStackBuffer();
+		testTypeConvertUtils();
 	}
 }
 
