@@ -17,7 +17,7 @@ namespace LiveProfiler {
 	class CpuSampleLinuxCollector : public BaseCollector<CpuSampleModel> {
 	public:
 		/** Default parameters */
-		static const std::size_t DefaultMmapPageCount = 32;
+		static const std::size_t DefaultMmapPageCount = 16;
 		static const std::size_t DefaultSamplePeriod = 100000;
 		static const std::size_t DefaultMaxFreePerfEntry = 1024;
 
@@ -59,7 +59,9 @@ namespace LiveProfiler {
 			samplePeriod_ = samplePeriod;
 		}
 
-		/** Set how many pages for mmap ring buffer, this count not contains metadata page */
+		/** Set how many pages for mmap ring buffer,
+		 * this count is not contains metadata page, and should be power of 2.
+		 */
 		void setMmapPageCount(std::size_t mmapPageCount) {
 			mmapPageCount_ = mmapPageCount;
 		}
@@ -105,8 +107,10 @@ namespace LiveProfiler {
 				// monitor this process
 				auto entry = perfEntryAllocator_.allocate();
 				entry->setPid(pid);
-				LinuxPerfUtils::monitorCpuSample(entry, samplePeriod_);
+				LinuxPerfUtils::monitorCpuSample(entry, samplePeriod_, mmapPageCount_);
 				pidToPerfEntry_.emplace(pid, std::move(entry));
+				// TODO: register to epoll
+				std::cout << pid << std::endl;
 			}
 			// find out which processes no longer exist
 		}

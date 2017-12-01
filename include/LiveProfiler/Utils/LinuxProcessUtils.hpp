@@ -28,7 +28,7 @@ namespace LiveProfiler {
 			// open /proc
 			::DIR* procDir = ::opendir("/proc");
 			if (procDir == nullptr) {
-				throw ProfilerException("open /proc failed");
+				throw ProfilerException(errno, "[listProcesses] opendir");
 			}
 			std::unique_ptr<::DIR, int(*)(DIR*)> procDirPtr(procDir, ::closedir);
 			// list directories under /proc

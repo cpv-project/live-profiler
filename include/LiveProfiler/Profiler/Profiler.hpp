@@ -78,7 +78,7 @@ namespace LiveProfiler {
 		void collectFor(const std::chrono::duration<Rep, Period>& time) {
 			auto collector = collector_;
 			if (collector == nullptr) {
-				throw ProfilerException("please call `useCollector` before `collectFor`");
+				throw ProfilerException("[collectFor] please call `useCollector` first");
 			}
 			auto start = std::chrono::high_resolution_clock::now();
 			CollectorGuard guard(collector);
