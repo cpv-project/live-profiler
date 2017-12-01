@@ -9,7 +9,7 @@ namespace LiveProfilerTests {
 	void testLinuxProcessUtilsListProcesses() {
 		auto selfpid = ::getpid();
 		std::vector<pid_t> pids;
-		LinuxProcessUtils::listProcesses(pids, [](pid_t pid) { return true; });
+		LinuxProcessUtils::listProcesses(pids, [](pid_t) { return true; });
 		assert(std::count(pids.cbegin(), pids.cend(), selfpid) > 0);
 	}
 

@@ -6,4 +6,4 @@ add_executable(${PROJECT_NAME} ${TestCases} Main.cpp)
 
 include_directories(../include)
 set(CMAKE_CXX_COMPILER "g++")
-set(CMAKE_CXX_FLAGS "-O3 -g --std=c++14")
+set(CMAKE_CXX_FLAGS "-Wall -Wextra -O3 -g --std=c++14")

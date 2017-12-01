@@ -36,7 +36,7 @@ namespace LiveProfiler {
 
 		/** Collect performance data for the specified timeout period */
 		const std::vector<CpuSampleModel>& collect(
-			std::chrono::high_resolution_clock::duration timeout) & override {
+			std::chrono::high_resolution_clock::duration) & override {
 			// update the processes to monitor every specified interval
 			auto now = std::chrono::high_resolution_clock::now();
 			if (now - processesUpdated_ > processesUpdateInterval_) {
