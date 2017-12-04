@@ -60,11 +60,24 @@ namespace LiveProfiler {
 			}
 			// poll events
 			auto& events = epoll_.wait(timeout);
-			std::cout << events.size() << std::endl;
-
-			// - read from mmap
-			// - convert to model
-			// TODO
+			for (auto& event : events) {
+				// get entry by pid
+				pid_t pid = static_cast<pid_t>(event.data.u64);
+				auto it = pidToPerfEntry_.find(pid);
+				if (it == pidToPerfEntry_.end()) {
+					// process no longer be monitored
+					continue;
+				}
+				// check events
+				if ((event.events & EPOLLIN) == EPOLLIN) {
+					// take a sample
+					takeSample(it->second);
+				} else if ((event.events & (EPOLLERR | EPOLLHUP)) != 0) {
+					// process no longer exist
+					unmonitorProcess(std::move(it->second));
+					pidToPerfEntry_.erase(it);
+				}
+			}
 			return result_;
 		}
 
@@ -172,6 +185,31 @@ namespace LiveProfiler {
 			// return instance to allocator
 			perfEntryAllocator_.deallocate(std::move(entry));
 		}
+
+		/** Take a sample for executing instruction (actually is the next instruction) */
+		void takeSample(std::unique_ptr<LinuxPerfEntry>& entry) {
+			auto data = entry->getData<CpuSampleRawData>();
+			// check type
+			if (data->header.type != PERF_RECORD_SAMPLE) {
+				return;
+			}
+			// TODO
+			// find function symbol from instruction pointer
+			std::cout << "pid: " << data->pid <<
+				" tid: " << data->tid <<
+				" ip: 0x" << std::hex << data->ip << std::dec <<
+				" nr: " << data->nr << std::endl;
+		}
+
+		/** See man perf_events, section PERF_RECORD_SAMPLE */
+		struct CpuSampleRawData {
+			::perf_event_header header;
+			std::uint64_t ip;
+			std::uint32_t pid;
+			std::uint32_t tid;
+			std::uint64_t nr;
+			std::uint64_t ips[];
+		};
 
 	protected:
 		std::vector<CpuSampleModel> result_;

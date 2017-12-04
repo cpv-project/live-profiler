@@ -60,6 +60,28 @@ namespace LiveProfiler {
 			mmapReadOffset_ = 0;
 		}
 
+		/** Get metadata struct from mapped memory */
+		const ::perf_event_mmap_page* getMetaPage() const {
+			// no null pointer checking for performance
+			return reinterpret_cast<::perf_event_mmap_page*>(mmapStartAddress_);
+		}
+
+		/**
+		 * Get data struct from mapped memory based on latest read offset.
+		 * You can access atmost `wakeup_events` elements from result.
+		 * Please call `updateReadOffset` before waiting for the next round.
+		 */
+		template <class T>
+		const T* getData() const {
+			// no null pointer and bound checking for performance
+			return reinterpret_cast<T*>(mmapDataAddress_ + mmapReadOffset_);
+		}
+
+		/** Update read offset prepare for next round */
+		void updateReadOffset() {
+			mmapReadOffset_ = getMetaPage()->data_head % mmapDataSize_;
+		}
+
 		/** Constructor */
 		LinuxPerfEntry() :
 			attr_(),
