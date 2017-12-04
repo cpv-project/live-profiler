@@ -26,14 +26,14 @@ namespace LiveProfiler {
 		void reset() override {
 			// clear all monitoring processes
 			for (auto& pair : pidToPerfEntry_) {
-				// unregister from epoll and return instance to allocator
-				epoll_.del(pair.second->getFd());
-				perfEntryAllocator_.deallocate(std::move(pair.second));
+				unmonitorProcess(std::move(pair.second));
 			}
 			pidToPerfEntry_.clear();
 			processes_.clear();
 			// reset last processes updated time
 			processesUpdated_ = {};
+			// reset enabled
+			enabled_ = false;
 			// the filter will remain because it's set externally
 		}
 
@@ -43,6 +43,8 @@ namespace LiveProfiler {
 			for (auto& pair : pidToPerfEntry_) {
 				LinuxPerfUtils::perfEventEnable(pair.second->getFd(), true);
 			}
+			// all newly monitored processes should call perfEventEnable
+			enabled_ = true;
 		}
 
 		/** Collect performance data for the specified timeout period */
@@ -72,6 +74,8 @@ namespace LiveProfiler {
 			for (auto& pair : pidToPerfEntry_) {
 				LinuxPerfUtils::perfEventDisable(pair.second->getFd());
 			}
+			// reset enabled
+			enabled_ = false;
 		}
 
 		/** Set how often to take a sample, the unit is cpu clock */
@@ -114,6 +118,7 @@ namespace LiveProfiler {
 			perfEntryAllocator_(DefaultMaxFreePerfEntry),
 			samplePeriod_(DefaultSamplePeriod),
 			mmapPageCount_(DefaultMmapPageCount),
+			enabled_(false),
 			epoll_() { }
 
 	protected:
@@ -125,16 +130,7 @@ namespace LiveProfiler {
 				if (pidToPerfEntry_.find(pid) != pidToPerfEntry_.end()) {
 					continue;
 				}
-				// monitor this process
-				auto entry = perfEntryAllocator_.allocate();
-				entry->setPid(pid);
-				LinuxPerfUtils::monitorSample(
-					entry, samplePeriod_, mmapPageCount_,
-					PERF_SAMPLE_IP | PERF_SAMPLE_TID | PERF_SAMPLE_CALLCHAIN);
-				// register to epoll, use edge trigger and associated data is pid
-				epoll_.add(entry->getFd(), EPOLLIN | EPOLLET, static_cast<std::uint64_t>(pid));
-				// insert to mapping
-				pidToPerfEntry_.emplace(pid, std::move(entry));
+				pidToPerfEntry_.emplace(pid, monitorProcess(pid));
 			}
 			// find out which processes no longer exist
 			for (auto it = pidToPerfEntry_.begin(); it != pidToPerfEntry_.end();) {
@@ -144,13 +140,37 @@ namespace LiveProfiler {
 					++it;
 				} else {
 					// process no longer exist
-					// unregister from epoll and return instance to allocator
-					epoll_.del(it->second->getFd());
-					perfEntryAllocator_.deallocate(std::move(it->second));
-					// remove from mapping
+					unmonitorProcess(std::move(it->second));
 					it = pidToPerfEntry_.erase(it);
 				}
 			}
+		}
+
+		/** Monitor specified process, will not access pidToPerfEntry_ */
+		std::unique_ptr<LinuxPerfEntry> monitorProcess(pid_t pid) {
+			// open perf event
+			auto entry = perfEntryAllocator_.allocate();
+			entry->setPid(pid);
+			LinuxPerfUtils::monitorSample(
+				entry, samplePeriod_, mmapPageCount_,
+				PERF_SAMPLE_IP | PERF_SAMPLE_TID | PERF_SAMPLE_CALLCHAIN);
+			// enable events if collecting
+			if (enabled_) {
+				LinuxPerfUtils::perfEventEnable(entry->getFd(), true);
+			}
+			// register to epoll, use edge trigger and associated data is pid
+			epoll_.add(entry->getFd(), EPOLLIN | EPOLLET, static_cast<std::uint64_t>(pid));
+			return entry;
+		}
+
+		/** Unmonitor specified process, will not access pidToPerfEntry_ */
+		void unmonitorProcess(std::unique_ptr<LinuxPerfEntry>&& entry) {
+			// unregister from epoll
+			epoll_.del(entry->getFd());
+			// disable events
+			LinuxPerfUtils::perfEventDisable(entry->getFd());
+			// return instance to allocator
+			perfEntryAllocator_.deallocate(std::move(entry));
 		}
 
 	protected:
@@ -163,6 +183,7 @@ namespace LiveProfiler {
 		FreeListAllocator<LinuxPerfEntry> perfEntryAllocator_;
 		std::size_t samplePeriod_;
 		std::size_t mmapPageCount_;
+		bool enabled_;
 		LinuxEpollDescriptor epoll_;
 	};
 }

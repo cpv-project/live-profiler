@@ -69,6 +69,9 @@ namespace LiveProfiler {
 		const std::vector<::epoll_event>& wait(
 			std::chrono::duration<Rep, Period> timeout) & {
 			int timeoutVal = std::chrono::duration_cast<std::chrono::milliseconds>(timeout).count();
+			if (timeout.count() > 0 && timeoutVal == 0) {
+				timeoutVal = 1; // timeout < 1ms, fix to 1ms
+			}
 			events_.resize(maxEpollEvents_);
 			auto ret = ::epoll_wait(epollFd_, events_.data(), events_.size(), timeoutVal);
 			if (ret < 0) {
