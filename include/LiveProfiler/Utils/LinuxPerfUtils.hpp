@@ -21,11 +21,12 @@ namespace LiveProfiler {
 			return ::syscall(__NR_perf_event_open, hw_event, pid, cpu, group_fd, flags);
 		}
 
-		/** Setup cpu sample monitor for specified process */
-		static bool monitorCpuSample(
+		/** Setup perf sample monitor for specified process */
+		static bool monitorSample(
 			std::unique_ptr<LinuxPerfEntry>& entry,
 			std::size_t samplePeriod,
-			std::size_t mmapPageCount) {
+			std::size_t mmapPageCount,
+			std::uint64_t sample_type) {
 			// caller should set a valid pid
 			auto pid = entry->getPid();
 			if (pid <= 0) {
@@ -37,7 +38,7 @@ namespace LiveProfiler {
 			attr.type = PERF_TYPE_SOFTWARE;
 			attr.config = PERF_COUNT_SW_CPU_CLOCK;
 			attr.sample_period = samplePeriod;
-			attr.sample_type = PERF_SAMPLE_IP | PERF_SAMPLE_CALLCHAIN;
+			attr.sample_type = sample_type;
 			attr.disabled = 1;
 			attr.inherit = 0;
 			attr.wakeup_events = 1;
@@ -50,7 +51,7 @@ namespace LiveProfiler {
 				if (err == ESRCH) {
 					return false; // process may have exited
 				}
-				throw ProfilerException(err, "[monitorCpuSample] perf_event_open");
+				throw ProfilerException(err, "[monitorSample] perf_event_open");
 			}
 			entry->setFd(fd);
 			// setup memory mapping
@@ -59,7 +60,7 @@ namespace LiveProfiler {
 			std::size_t totalSize = pageSize * pageCount;
 			auto* address = ::mmap(0, totalSize, PROT_READ, MAP_SHARED, fd, 0);
 			if (address == nullptr || reinterpret_cast<intptr_t>(address) == -1) {
-				throw ProfilerException(errno, "[monitorCpuSample] mmap");
+				throw ProfilerException(errno, "[monitorSample] mmap");
 			}
 			entry->setMmapAddress(reinterpret_cast<char*>(address), totalSize, pageSize);
 			return true;

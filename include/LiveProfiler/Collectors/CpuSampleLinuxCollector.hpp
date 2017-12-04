@@ -9,6 +9,7 @@
 #include "../Utils/LinuxProcessUtils.hpp"
 #include "../Utils/LinuxPerfEntry.hpp"
 #include "../Utils/LinuxPerfUtils.hpp"
+#include "../Utils/LinuxEpollDescriptor.hpp"
 
 namespace LiveProfiler {
 	/**
@@ -93,7 +94,8 @@ namespace LiveProfiler {
 			pidToPerfEntry_(),
 			perfEntryAllocator_(DefaultMaxFreePerfEntry),
 			samplePeriod_(DefaultSamplePeriod),
-			mmapPageCount_(DefaultMmapPageCount) { }
+			mmapPageCount_(DefaultMmapPageCount),
+			epoll_() { }
 
 	protected:
 		/** Update the processes to monitor based on the latest list */
@@ -107,12 +109,29 @@ namespace LiveProfiler {
 				// monitor this process
 				auto entry = perfEntryAllocator_.allocate();
 				entry->setPid(pid);
-				LinuxPerfUtils::monitorCpuSample(entry, samplePeriod_, mmapPageCount_);
+				LinuxPerfUtils::monitorSample(
+					entry, samplePeriod_, mmapPageCount_,
+					PERF_SAMPLE_IP | PERF_SAMPLE_TID | PERF_SAMPLE_CALLCHAIN);
+				// register to epoll, use edge trigger and associated data is pid
+				epoll_.add(entry->getFd(), EPOLLIN | EPOLLET, static_cast<std::uint64_t>(pid));
+				// insert to mapping
 				pidToPerfEntry_.emplace(pid, std::move(entry));
-				// TODO: register to epoll
-				std::cout << pid << std::endl;
 			}
 			// find out which processes no longer exist
+			for (auto it = pidToPerfEntry_.begin(); it != pidToPerfEntry_.end();) {
+				pid_t pid = it->first;
+				if (std::binary_search(processes_.cbegin(), processes_.cend(), pid)) {
+					// process still exist
+					++it;
+				} else {
+					// process no longer exist
+					// unregister from epoll and return instance to allocator
+					epoll_.del(it->second->getFd());
+					perfEntryAllocator_.deallocate(std::move(it->second));
+					// remove from mapping
+					it = pidToPerfEntry_.erase(it);
+				}
+			}
 		}
 
 	protected:
@@ -125,6 +144,7 @@ namespace LiveProfiler {
 		FreeListAllocator<LinuxPerfEntry> perfEntryAllocator_;
 		std::size_t samplePeriod_;
 		std::size_t mmapPageCount_;
+		LinuxEpollDescriptor epoll_;
 	};
 }
 
