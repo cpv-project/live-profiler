@@ -24,14 +24,14 @@ namespace LiveProfiler {
 
 		/** Reset the state to it's initial state */
 		void reset() override {
-			// clear all monitoring processes
-			for (auto& pair : pidToPerfEntry_) {
-				unmonitorProcess(std::move(pair.second));
+			// clear all monitoring threads
+			for (auto& pair : tidToPerfEntry_) {
+				unmonitorThread(std::move(pair.second));
 			}
-			pidToPerfEntry_.clear();
-			processes_.clear();
-			// reset last processes updated time
-			processesUpdated_ = {};
+			tidToPerfEntry_.clear();
+			threads_.clear();
+			// reset last threads updated time
+			threadsUpdated_ = {};
 			// reset enabled
 			enabled_ = false;
 			// the filter will remain because it's set externally
@@ -40,32 +40,32 @@ namespace LiveProfiler {
 		/** Enable performance data collection */
 		void enable() override {
 			// reset and enable all perf events, ignore any errors
-			for (auto& pair : pidToPerfEntry_) {
+			for (auto& pair : tidToPerfEntry_) {
 				LinuxPerfUtils::perfEventEnable(pair.second->getFd(), true);
 			}
-			// all newly monitored processes should call perfEventEnable
+			// all newly monitored threads should call perfEventEnable
 			enabled_ = true;
 		}
 
 		/** Collect performance data for the specified timeout period */
 		const std::vector<CpuSampleModel>& collect(
 			std::chrono::high_resolution_clock::duration timeout) & override {
-			// update the processes to monitor every specified interval
+			// update the threads to monitor every specified interval
 			auto now = std::chrono::high_resolution_clock::now();
-			if (now - processesUpdated_ > processesUpdateInterval_) {
-				processes_.clear();
-				LinuxProcessUtils::listProcesses(processes_, filter_, true);
+			if (now - threadsUpdated_ > threadsUpdateInterval_) {
+				threads_.clear();
+				LinuxProcessUtils::listProcesses(threads_, filter_, true);
 				updatePerfEvents();
-				processesUpdated_ = now;
+				threadsUpdated_ = now;
 			}
 			// poll events
 			auto& events = epoll_.wait(timeout);
 			for (auto& event : events) {
-				// get entry by pid
-				pid_t pid = static_cast<pid_t>(event.data.u64);
-				auto it = pidToPerfEntry_.find(pid);
-				if (it == pidToPerfEntry_.end()) {
-					// process no longer be monitored
+				// get entry by tid
+				pid_t tid = static_cast<pid_t>(event.data.u64);
+				auto it = tidToPerfEntry_.find(tid);
+				if (it == tidToPerfEntry_.end()) {
+					// thread no longer be monitored
 					continue;
 				}
 				// check events
@@ -73,9 +73,9 @@ namespace LiveProfiler {
 					// take a sample
 					takeSample(it->second);
 				} else if ((event.events & (EPOLLERR | EPOLLHUP)) != 0) {
-					// process no longer exist
-					unmonitorProcess(std::move(it->second));
-					pidToPerfEntry_.erase(it);
+					// thread no longer exist
+					unmonitorThread(std::move(it->second));
+					tidToPerfEntry_.erase(it);
 				}
 			}
 			return result_;
@@ -84,7 +84,7 @@ namespace LiveProfiler {
 		/** Disable performance data collection */
 		void disable() override {
 			// disable all perf events, ignore any errors
-			for (auto& pair : pidToPerfEntry_) {
+			for (auto& pair : tidToPerfEntry_) {
 				LinuxPerfUtils::perfEventDisable(pair.second->getFd());
 			}
 			// reset enabled
@@ -106,8 +106,8 @@ namespace LiveProfiler {
 		/** Set how often to update the list of processes */
 		template <class Rep, class Period>
 		void setProcessesUpdateInterval(std::chrono::duration<Rep, Period> interval) {
-			processesUpdateInterval_ = std::chrono::duration_cast<
-				std::decay_t<decltype(processesUpdateInterval_)>>(interval);
+			threadsUpdateInterval_ = std::chrono::duration_cast<
+				std::decay_t<decltype(threadsUpdateInterval_)>>(interval);
 		}
 
 		/** Use the specified function to decide which processes to monitor */
@@ -124,10 +124,10 @@ namespace LiveProfiler {
 		CpuSampleLinuxCollector() :
 			result_(),
 			filter_(),
-			processes_(),
-			processesUpdated_(),
-			processesUpdateInterval_(std::chrono::milliseconds(100)),
-			pidToPerfEntry_(),
+			threads_(),
+			threadsUpdated_(),
+			threadsUpdateInterval_(std::chrono::milliseconds(100)),
+			tidToPerfEntry_(),
 			perfEntryAllocator_(DefaultMaxFreePerfEntry),
 			samplePeriod_(DefaultSamplePeriod),
 			mmapPageCount_(DefaultMmapPageCount),
@@ -135,35 +135,35 @@ namespace LiveProfiler {
 			epoll_() { }
 
 	protected:
-		/** Update the processes to monitor based on the latest list */
+		/** Update the threads to monitor based on `threads_` */
 		void updatePerfEvents() {
-			std::sort(processes_.begin(), processes_.end());
-			// find out which processes newly created
-			for (pid_t pid : processes_) {
-				if (pidToPerfEntry_.find(pid) != pidToPerfEntry_.end()) {
+			std::sort(threads_.begin(), threads_.end());
+			// find out which threads newly created
+			for (pid_t tid : threads_) {
+				if (tidToPerfEntry_.find(tid) != tidToPerfEntry_.end()) {
 					continue;
 				}
-				pidToPerfEntry_.emplace(pid, monitorProcess(pid));
+				tidToPerfEntry_.emplace(tid, monitorThread(tid));
 			}
-			// find out which processes no longer exist
-			for (auto it = pidToPerfEntry_.begin(); it != pidToPerfEntry_.end();) {
-				pid_t pid = it->first;
-				if (std::binary_search(processes_.cbegin(), processes_.cend(), pid)) {
-					// process still exist
+			// find out which threads no longer exist
+			for (auto it = tidToPerfEntry_.begin(); it != tidToPerfEntry_.end();) {
+				pid_t tid = it->first;
+				if (std::binary_search(threads_.cbegin(), threads_.cend(), tid)) {
+					// thread still exist
 					++it;
 				} else {
-					// process no longer exist
-					unmonitorProcess(std::move(it->second));
-					it = pidToPerfEntry_.erase(it);
+					// thread no longer exist
+					unmonitorThread(std::move(it->second));
+					it = tidToPerfEntry_.erase(it);
 				}
 			}
 		}
 
-		/** Monitor specified process, will not access pidToPerfEntry_ */
-		std::unique_ptr<LinuxPerfEntry> monitorProcess(pid_t pid) {
+		/** Monitor specified thread, will not access tidToPerfEntry_ */
+		std::unique_ptr<LinuxPerfEntry> monitorThread(pid_t tid) {
 			// open perf event
 			auto entry = perfEntryAllocator_.allocate();
-			entry->setPid(pid);
+			entry->setPid(tid);
 			LinuxPerfUtils::monitorSample(
 				entry, samplePeriod_, mmapPageCount_,
 				PERF_SAMPLE_IP | PERF_SAMPLE_TID | PERF_SAMPLE_CALLCHAIN);
@@ -171,13 +171,13 @@ namespace LiveProfiler {
 			if (enabled_) {
 				LinuxPerfUtils::perfEventEnable(entry->getFd(), true);
 			}
-			// register to epoll, use edge trigger and associated data is pid
-			epoll_.add(entry->getFd(), EPOLLIN | EPOLLET, static_cast<std::uint64_t>(pid));
+			// register to epoll, use edge trigger and associated data is tid
+			epoll_.add(entry->getFd(), EPOLLIN | EPOLLET, static_cast<std::uint64_t>(tid));
 			return entry;
 		}
 
-		/** Unmonitor specified process, will not access pidToPerfEntry_ */
-		void unmonitorProcess(std::unique_ptr<LinuxPerfEntry>&& entry) {
+		/** Unmonitor specified thread, will not access tidToPerfEntry_ */
+		void unmonitorThread(std::unique_ptr<LinuxPerfEntry>&& entry) {
 			// unregister from epoll
 			epoll_.del(entry->getFd());
 			// disable events
@@ -214,10 +214,10 @@ namespace LiveProfiler {
 	protected:
 		std::vector<CpuSampleModel> result_;
 		std::function<bool(pid_t)> filter_;
-		std::vector<pid_t> processes_;
-		std::chrono::high_resolution_clock::time_point processesUpdated_;
-		std::chrono::high_resolution_clock::duration processesUpdateInterval_;
-		std::unordered_map<pid_t, std::unique_ptr<LinuxPerfEntry>> pidToPerfEntry_;
+		std::vector<pid_t> threads_;
+		std::chrono::high_resolution_clock::time_point threadsUpdated_;
+		std::chrono::high_resolution_clock::duration threadsUpdateInterval_;
+		std::unordered_map<pid_t, std::unique_ptr<LinuxPerfEntry>> tidToPerfEntry_;
 		FreeListAllocator<LinuxPerfEntry> perfEntryAllocator_;
 		std::size_t samplePeriod_;
 		std::size_t mmapPageCount_;

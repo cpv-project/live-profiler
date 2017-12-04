@@ -69,7 +69,7 @@ analyzer
 	get symbol from address
 
 TODO (collector)
-	rename pid to tid	
+	(done) rename pid to tid	
 	create a mapping with pid to process information
 	clear mapping when process no longer exist
 
