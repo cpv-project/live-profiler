@@ -2,6 +2,7 @@
 #include <unistd.h>
 #include <sys/epoll.h>
 #include <chrono>
+#include <vector>
 #include "../Exceptions/ProfilerException.hpp"
 
 namespace LiveProfiler {
