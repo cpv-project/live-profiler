@@ -10,3 +10,70 @@ profiler.collectFor(std::chrono::seconds(100));
 auto coutingResult = coutingAnalyzer.getResult();
 auto hotPathResult = hotPathAnalyzer.getResult();
 
+--------------------------------------------------------
+
+root@ubuntu-virtual-machine:/home/ubuntu/Downloads/live-profiler# cat /proc/22949/maps
+5618b8948000-5618b895d000 r-xp 00000000 08:01 394085                     /home/ubuntu/Downloads/live-profiler/tests/Build/LiveProfilerTest
+5618b8b5d000-5618b8b5e000 r--p 00015000 08:01 394085                     /home/ubuntu/Downloads/live-profiler/tests/Build/LiveProfilerTest
+5618b8b5e000-5618b8b5f000 rw-p 00016000 08:01 394085                     /home/ubuntu/Downloads/live-profiler/tests/Build/LiveProfilerTest
+5618b8b5f000-5618b8c5f000 rw-p 00000000 00:00 0 
+5618ba719000-5618baadd000 rw-p 00000000 00:00 0                          [heap]
+7f1b6b92d000-7f1b6b92e000 ---p 00000000 00:00 0 
+7f1b6b92e000-7f1b6c12e000 rw-p 00000000 00:00 0 
+7f1b6c12e000-7f1b6c283000 r-xp 00000000 08:01 2102118                    /lib/x86_64-linux-gnu/libm-2.26.so
+7f1b6c283000-7f1b6c482000 ---p 00155000 08:01 2102118                    /lib/x86_64-linux-gnu/libm-2.26.so
+7f1b6c482000-7f1b6c483000 r--p 00154000 08:01 2102118                    /lib/x86_64-linux-gnu/libm-2.26.so
+7f1b6c483000-7f1b6c484000 rw-p 00155000 08:01 2102118                    /lib/x86_64-linux-gnu/libm-2.26.so
+7f1b6c484000-7f1b6c65a000 r-xp 00000000 08:01 2102052                    /lib/x86_64-linux-gnu/libc-2.26.so
+7f1b6c65a000-7f1b6c85a000 ---p 001d6000 08:01 2102052                    /lib/x86_64-linux-gnu/libc-2.26.so
+7f1b6c85a000-7f1b6c85e000 r--p 001d6000 08:01 2102052                    /lib/x86_64-linux-gnu/libc-2.26.so
+7f1b6c85e000-7f1b6c860000 rw-p 001da000 08:01 2102052                    /lib/x86_64-linux-gnu/libc-2.26.so
+7f1b6c860000-7f1b6c864000 rw-p 00000000 00:00 0 
+7f1b6c864000-7f1b6c87e000 r-xp 00000000 08:01 2102190                    /lib/x86_64-linux-gnu/libpthread-2.26.so
+7f1b6c87e000-7f1b6ca7d000 ---p 0001a000 08:01 2102190                    /lib/x86_64-linux-gnu/libpthread-2.26.so
+7f1b6ca7d000-7f1b6ca7e000 r--p 00019000 08:01 2102190                    /lib/x86_64-linux-gnu/libpthread-2.26.so
+7f1b6ca7e000-7f1b6ca7f000 rw-p 0001a000 08:01 2102190                    /lib/x86_64-linux-gnu/libpthread-2.26.so
+7f1b6ca7f000-7f1b6ca83000 rw-p 00000000 00:00 0 
+7f1b6ca83000-7f1b6ca99000 r-xp 00000000 08:01 2102090                    /lib/x86_64-linux-gnu/libgcc_s.so.1
+7f1b6ca99000-7f1b6cc98000 ---p 00016000 08:01 2102090                    /lib/x86_64-linux-gnu/libgcc_s.so.1
+7f1b6cc98000-7f1b6cc99000 r--p 00015000 08:01 2102090                    /lib/x86_64-linux-gnu/libgcc_s.so.1
+7f1b6cc99000-7f1b6cc9a000 rw-p 00016000 08:01 2102090                    /lib/x86_64-linux-gnu/libgcc_s.so.1
+7f1b6cc9a000-7f1b6ce12000 r-xp 00000000 08:01 2367580                    /usr/lib/x86_64-linux-gnu/libstdc++.so.6.0.24
+7f1b6ce12000-7f1b6d011000 ---p 00178000 08:01 2367580                    /usr/lib/x86_64-linux-gnu/libstdc++.so.6.0.24
+7f1b6d011000-7f1b6d01b000 r--p 00177000 08:01 2367580                    /usr/lib/x86_64-linux-gnu/libstdc++.so.6.0.24
+7f1b6d01b000-7f1b6d01d000 rw-p 00181000 08:01 2367580                    /usr/lib/x86_64-linux-gnu/libstdc++.so.6.0.24
+7f1b6d01d000-7f1b6d020000 rw-p 00000000 00:00 0 
+7f1b6d020000-7f1b6d047000 r-xp 00000000 08:01 2102024                    /lib/x86_64-linux-gnu/ld-2.26.so
+7f1b6d219000-7f1b6d22a000 r--s 00000000 00:0d 10329                      anon_inode:[perf_event]
+7f1b6d22a000-7f1b6d22f000 rw-p 00000000 00:00 0 
+7f1b6d233000-7f1b6d244000 r--s 00000000 00:0d 10329                      anon_inode:[perf_event]
+7f1b6d244000-7f1b6d247000 rw-p 00000000 00:00 0 
+7f1b6d247000-7f1b6d248000 r--p 00027000 08:01 2102024                    /lib/x86_64-linux-gnu/ld-2.26.so
+7f1b6d248000-7f1b6d249000 rw-p 00028000 08:01 2102024                    /lib/x86_64-linux-gnu/ld-2.26.so
+7f1b6d249000-7f1b6d24a000 rw-p 00000000 00:00 0 
+7ffd7023f000-7ffd70260000 rw-p 00000000 00:00 0                          [stack]
+7ffd702ce000-7ffd702d1000 r--p 00000000 00:00 0                          [vvar]
+7ffd702d1000-7ffd702d3000 r-xp 00000000 00:00 0                          [vdso]
+ffffffffff600000-ffffffffff601000 r-xp 00000000 00:00 0                  [vsyscall]
+
+collector
+	get process information
+		find is address in maps
+			if not in maps then reparse maps
+		find address in maps
+			if still not in maps then ignore, record failure times
+		record offset and filename
+
+analyzer
+	parse file find symbol list
+	get symbol from address
+
+TODO (collector)
+	rename pid to tid	
+	create a mapping with pid to process information
+	clear mapping when process no longer exist
+
+TODO (analyzer)
+	add file cache
+	add symbol cache
+
