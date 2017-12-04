@@ -1,20 +1,28 @@
 #pragma once
 #include <unistd.h>
 #include <sys/epoll.h>
+#include <chrono>
 #include "../Exceptions/ProfilerException.hpp"
 
 namespace LiveProfiler {
 	/** Class used to operate epoll instance */
 	class LinuxEpollDescriptor {
 	public:
+		/** Default parameters */
+		static const std::size_t DefaultMaxEpollEvents = 128;
+
 		/** Getter */
 		int getEpollFd() const { return epollFd_; }
 
 		/** Constructor */
-		LinuxEpollDescriptor() : LinuxEpollDescriptor(::epoll_create(1)) { }
+		LinuxEpollDescriptor() :
+			LinuxEpollDescriptor(::epoll_create(1), DefaultMaxEpollEvents) { }
 
 		/** Constructor */
-		LinuxEpollDescriptor(int epollFd) : epollFd_(epollFd) { }
+		LinuxEpollDescriptor(int epollFd, std::size_t maxEpollEvents) :
+			epollFd_(epollFd),
+			maxEpollEvents_(maxEpollEvents),
+			events_() { }
 
 		/** Destructor */
 		~LinuxEpollDescriptor() { ::close(epollFd_); }
@@ -55,6 +63,26 @@ namespace LiveProfiler {
 			}
 		}
 
+		/** Wait for an I/O event on an epoll file descriptor */
+		template <class Rep, class Period>
+		const std::vector<::epoll_event>& wait(
+			std::chrono::duration<Rep, Period> timeout) & {
+			int timeoutVal = std::chrono::duration_cast<std::chrono::milliseconds>(timeout).count();
+			events_.resize(maxEpollEvents_);
+			auto ret = ::epoll_wait(epollFd_, events_.data(), events_.size(), timeoutVal);
+			if (ret < 0) {
+				int err = errno;
+				if (err == EINTR) {
+					// interrupted by a signal handle is not a error
+					ret = 0;
+				} else {
+					throw ProfilerException(err, "[LinuxEpollDescriptor::wait] epoll_wait");
+				}
+			}
+			events_.resize(ret);
+			return events_;
+		}
+
 	protected:
 		/** Disable copy */
 		LinuxEpollDescriptor(const LinuxEpollDescriptor&) = delete;
@@ -62,6 +90,8 @@ namespace LiveProfiler {
 
 	protected:
 		int epollFd_;
+		std::size_t maxEpollEvents_;
+		std::vector<::epoll_event> events_;
 	};
 }
 
