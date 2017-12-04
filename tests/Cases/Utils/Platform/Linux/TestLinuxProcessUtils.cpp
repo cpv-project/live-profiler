@@ -3,7 +3,7 @@
 #include <iostream>
 #include <algorithm>
 #include <thread>
-#include <LiveProfiler/Utils/LinuxProcessUtils.hpp>
+#include <LiveProfiler/Utils/Platform/Linux/LinuxProcessUtils.hpp>
 
 namespace LiveProfilerTests {
 	using namespace LiveProfiler;

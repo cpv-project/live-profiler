@@ -3,7 +3,7 @@
 #include <sys/epoll.h>
 #include <chrono>
 #include <vector>
-#include "../Exceptions/ProfilerException.hpp"
+#include "../../../Exceptions/ProfilerException.hpp"
 
 namespace LiveProfiler {
 	/** Class used to operate epoll instance */

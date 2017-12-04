@@ -4,7 +4,7 @@
 #include <sys/syscall.h>
 #include <memory>
 #include "LinuxPerfEntry.hpp"
-#include "../Exceptions/ProfilerException.hpp"
+#include "../../../Exceptions/ProfilerException.hpp"
 
 namespace LiveProfiler {
 	/** Static utility functions releated to linux perf_events */

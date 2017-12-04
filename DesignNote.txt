@@ -67,6 +67,7 @@ collector
 analyzer
 	parse file find symbol list
 	get symbol from address
+	how to get function length? 
 
 TODO (collector)
 	(done) rename pid to tid	

@@ -9,9 +9,9 @@
 #include <array>
 #include <memory>
 #include <functional>
-#include "../Exceptions/ProfilerException.hpp"
-#include "../Utils/Containers/StackBuffer.hpp"
-#include "../Utils/TypeConvertUtils.hpp"
+#include "../../../Exceptions/ProfilerException.hpp"
+#include "../../Containers/StackBuffer.hpp"
+#include "../../TypeConvertUtils.hpp"
 
 namespace LiveProfiler {
 	/** Static utility functions releated to linux processes */

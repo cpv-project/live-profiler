@@ -6,10 +6,10 @@
 #include "BaseCollector.hpp"
 #include "../Models/CpuSampleModel.hpp"
 #include "../Utils/Allocators/FreeListAllocator.hpp"
-#include "../Utils/LinuxProcessUtils.hpp"
-#include "../Utils/LinuxPerfEntry.hpp"
-#include "../Utils/LinuxPerfUtils.hpp"
-#include "../Utils/LinuxEpollDescriptor.hpp"
+#include "../Utils/Platform/Linux/LinuxProcessUtils.hpp"
+#include "../Utils/Platform/Linux/LinuxPerfEntry.hpp"
+#include "../Utils/Platform/Linux/LinuxPerfUtils.hpp"
+#include "../Utils/Platform/Linux/LinuxEpollDescriptor.hpp"
 
 namespace LiveProfiler {
 	/**

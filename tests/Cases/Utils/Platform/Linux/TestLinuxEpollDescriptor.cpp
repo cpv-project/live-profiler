@@ -1,7 +1,7 @@
 #include <iostream>
 #include <cassert>
 #include <memory>
-#include <LiveProfiler/Utils/LinuxEpollDescriptor.hpp>
+#include <LiveProfiler/Utils/Platform/Linux/LinuxEpollDescriptor.hpp>
 
 namespace LiveProfilerTests {
 	using namespace LiveProfiler;
