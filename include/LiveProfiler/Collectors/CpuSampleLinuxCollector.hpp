@@ -24,12 +24,25 @@ namespace LiveProfiler {
 
 		/** Reset the state to it's initial state */
 		void reset() override {
-			// TODO
+			// clear all monitoring processes
+			for (auto& pair : pidToPerfEntry_) {
+				// unregister from epoll and return instance to allocator
+				epoll_.del(pair.second->getFd());
+				perfEntryAllocator_.deallocate(std::move(pair.second));
+			}
+			pidToPerfEntry_.clear();
+			processes_.clear();
+			// reset last processes updated time
+			processesUpdated_ = {};
+			// the filter will remain because it's set externally
 		}
 
 		/** Enable performance data collection */
 		void enable() override {
-			// TODO
+			// reset and enable all perf events, ignore any errors
+			for (auto& pair : pidToPerfEntry_) {
+				LinuxPerfUtils::perfEventEnable(pair.second->getFd(), true);
+			}
 		}
 
 		/** Collect performance data for the specified timeout period */
@@ -55,7 +68,10 @@ namespace LiveProfiler {
 
 		/** Disable performance data collection */
 		void disable() override {
-			// TODO
+			// disable all perf events, ignore any errors
+			for (auto& pair : pidToPerfEntry_) {
+				LinuxPerfUtils::perfEventDisable(pair.second->getFd());
+			}
 		}
 
 		/** Set how often to take a sample, the unit is cpu clock */

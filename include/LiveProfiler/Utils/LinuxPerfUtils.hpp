@@ -1,5 +1,6 @@
 #pragma once
 #include <fcntl.h>
+#include <sys/ioctl.h>
 #include <sys/syscall.h>
 #include <memory>
 #include "LinuxPerfEntry.hpp"
@@ -19,6 +20,19 @@ namespace LiveProfiler {
 			int group_fd,
 			unsigned long flags) {
 			return ::syscall(__NR_perf_event_open, hw_event, pid, cpu, group_fd, flags);
+		}
+
+		/** Enable perf events, also reset if `reset` parameter is true */
+		static bool perfEventEnable(int fd, bool reset) {
+			auto retReset = reset ? ::ioctl(fd, PERF_EVENT_IOC_RESET, 0) : 0;
+			auto retEnable = ::ioctl(fd, PERF_EVENT_IOC_ENABLE, 0);
+			return retReset >= 0 && retEnable >= 0;
+		}
+
+		/** Disable perf events */
+		static bool perfEventDisable(int fd) {
+			auto ret = ::ioctl(fd, PERF_EVENT_IOC_DISABLE, 0);
+			return ret >= 0;
 		}
 
 		/** Setup perf sample monitor for specified process */
