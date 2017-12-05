@@ -14,11 +14,14 @@ namespace LiveProfilerTests {
 		assert(buffer.appendNullTerminator());
 		assert(std::string(buffer.data()) == "abc123qwert");
 		assert(buffer.offset() == 12);
+		assert(!buffer.empty());
 
 		buffer.clear();
+		assert(buffer.empty());
 		assert(buffer.appendNullTerminator());
 		assert(std::string(buffer.data()) == "");
 		assert(buffer.offset() == 1);
+		assert(!buffer.empty());
 
 		StackBuffer<1> smallBuffer;
 		assert(!smallBuffer.appendStr("abc", 3));
@@ -26,6 +29,7 @@ namespace LiveProfilerTests {
 		assert(smallBuffer.appendNullTerminator());
 		assert(!smallBuffer.appendNullTerminator());
 		assert(smallBuffer.offset() == 1);
+		assert(!buffer.empty());
 	}
 }
 

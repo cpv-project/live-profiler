@@ -11,6 +11,7 @@ namespace LiveProfiler {
 		char* data() { return data_; }
 		const char* data() const { return data_; }
 		std::size_t offset() const { return offset_; }
+		bool empty() const { return offset_ == 0; }
 
 		/** Constructor */
 		StackBuffer() : offset_(0) { }
