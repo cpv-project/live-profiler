@@ -79,6 +79,7 @@ You should follow the rules below if you want to contribute.
 - For local variable names, use camel case and start with a lower case (e.g. someInt)
 - For global variable names, use camel case and start with a upper case (e.g. SomeGlobalValue)
 - For class member names, use camel case and start with a lower case and ends with `_` (e.g. someMember_)
+- Write comments for every public class and function, make code simple
 - Exceptions thrown should be based on ProfilerException, and the message should contains function name
 - Avoid memory allocation as much as possible, use FreeListAllocator to reuse instances
 

@@ -78,3 +78,33 @@ TODO (analyzer)
 	add file cache
 	add symbol cache
 
+--------------------------------------------------------
+
+class LinuxProcessAddressMap {
+	std::uint64_t startAddress;
+	std::uint64_t endAddress;
+	std::shared_ptr<std::string> path;
+	std::shared_ptr<LinuxExecutableSymbolResolver> resolver;
+};
+
+std::unordered_map<pid_t, LinuxProcessAddressLocator>
+	std::vector<LinuxProcessAddressMap>
+
+class SymbolName {
+	std::string originalName;
+	std::string demangleName;
+	std::shared_ptr<std::string> path;
+};
+
+template <class TKey, class TValue>
+class SingletonAllocator {
+	std::shared_ptr<TValue> allocate(const TKey& key) {
+		
+	}
+	std::unordered_map<TKey, std::shared_ptr<TValue>> values_;
+}
+
+SingletonAllocator<std::string, std::string> pathAllocator;
+SingletonAllocator<std::string, LinuxExecutableSymbolResolver> resolverAllocator;
+SingletonAllocator<SymbolName, SymbolName> symbolNameAllocator;
+
