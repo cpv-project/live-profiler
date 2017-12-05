@@ -77,8 +77,11 @@ namespace LiveProfiler {
 				++partIndex;
 			}
 			// handle empty pathname
-			// TODO
-
+			if (partIndex == 5 && successParts == 2) {
+				path_ = pathAllocator->allocate("", 0);
+				resolver_ = resolverAllocator->allocate(*path_);
+				++successParts;
+			}
 			// is all address, offset, pathname parse successful?
 			return successParts == 3;
 		}

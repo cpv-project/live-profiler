@@ -7,6 +7,7 @@
 #include "./Cases/Utils/Platform/Linux/TestLinuxExecutableSymbolResolver.hpp"
 #include "./Cases/Utils/Platform/Linux/TestLinuxPerfUtils.hpp"
 #include "./Cases/Utils/Platform/Linux/TestLinuxProcessAddressLocator.hpp"
+#include "./Cases/Utils/Platform/Linux/TestLinuxProcessAddressMap.hpp"
 #include "./Cases/Utils/Platform/Linux/TestLinuxProcessUtils.hpp"
 #include "./Cases/Utils/TestTypeConvertUtils.hpp"
 
@@ -21,6 +22,7 @@ namespace LiveProfilerTests {
 		testLinuxExecutableSymbolResolver();
 		testLinuxPerfUtils();
 		testLinuxProcessAddressLocator();
+		testLinuxProcessAddressMap();
 		testLinuxProcessUtils();
 		testTypeConvertUtils();
 	}
