@@ -7,9 +7,19 @@
 namespace LiveProfiler {
 	struct TypeConvertUtils {
 		/** Convert c string to long long, return whether the conversion is successful */
-		static bool strToLongLong(const char* str, long long& result) {
+		static bool strToLongLong(const char* str, long long& result, int base = 10) {
 			char* endptr = nullptr;
-			result = std::strtoll(str, &endptr, 10);
+			result = std::strtoll(str, &endptr, base);
+			if (endptr == nullptr || endptr == str) {
+				return false;
+			}
+			return true;
+		}
+
+		/** Convert c string to unsigned long long, return whether the conversion is successful */
+		static bool strToUnsignedLongLong(const char* str, unsigned long long& result, int base = 10) {
+			char* endptr = nullptr;
+			result = std::strtoull(str, &endptr, base);
 			if (endptr == nullptr || endptr == str) {
 				return false;
 			}
