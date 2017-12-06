@@ -270,7 +270,8 @@ namespace LiveProfiler {
 		std::unordered_map<pid_t, std::unique_ptr<LinuxProcessAddressLocator>> pidToAddressLocator_;
 		FreeListAllocator<LinuxProcessAddressLocator> addressLocatorAllocator_;
 		std::shared_ptr<SingletonAllocator<std::string, std::string>> pathAllocator_;
-		std::shared_ptr<SingletonAllocator<std::string, LinuxExecutableSymbolResolver>> resolverAllocator_;
+		std::shared_ptr<SingletonAllocator<
+			std::shared_ptr<std::string>, LinuxExecutableSymbolResolver>> resolverAllocator_;
 	};
 }
 
