@@ -1,5 +1,6 @@
 #pragma once
 #include <sys/types.h>
+#include <cassert>
 #include <vector>
 #include <memory>
 #include <chrono>
@@ -78,15 +79,35 @@ namespace LiveProfiler {
 				});
 		}
 
-		/** Constructor */
-		LinuxProcessAddressLocator(
+		/** For FreeListAllocator */
+		void freeResources() {
+			pathAllocator_ = nullptr;
+			resolverAllocator_ = nullptr;
+			maps_.clear();
+		}
+
+		/** For FreeListAllocator */
+		void reset(
 			pid_t pid,
 			const std::shared_ptr<SingletonAllocator<std::string, std::string>>& pathAllocator,
 			const std::shared_ptr<SingletonAllocator<
-				std::string, LinuxExecutableSymbolResolver>>& resolverAllocator) :
-			pid_(pid),
-			pathAllocator_(pathAllocator),
-			resolverAllocator_(resolverAllocator),
+				std::string, LinuxExecutableSymbolResolver>>& resolverAllocator) {
+			assert(pathAllocator != nullptr);
+			assert(resolverAllocator != nullptr);
+			pid_ = pid;
+			pathAllocator_ = pathAllocator;
+			resolverAllocator_ = resolverAllocator;
+			maps_.clear();
+			mapsUpdated_ = {};
+			mapsPathBuffer_.clear();
+			line_.clear();
+		}
+
+		/** Constructor */
+		LinuxProcessAddressLocator() :
+			pid_(0),
+			pathAllocator_(nullptr),
+			resolverAllocator_(nullptr),
 			maps_(),
 			mapsUpdated_(),
 			mapsUpdateMinInterval_(std::chrono::milliseconds(DefaultMapsUpdateMinInterval)),

@@ -1,5 +1,6 @@
 #pragma once
 #include <linux/perf_event.h>
+#include <cassert>
 #include <atomic>
 #include <chrono>
 #include <unordered_map>
@@ -46,6 +47,7 @@ namespace LiveProfiler {
 		void enable() override {
 			// reset and enable all perf events, ignore any errors
 			for (auto& pair : tidToPerfEntry_) {
+				assert(pair.second != nullptr);
 				LinuxPerfUtils::perfEventEnable(pair.second->getFd(), true);
 			}
 			// all newly monitored threads should call perfEventEnable
@@ -95,6 +97,7 @@ namespace LiveProfiler {
 		void disable() override {
 			// disable all perf events, ignore any errors
 			for (auto& pair : tidToPerfEntry_) {
+				assert(pair.second != nullptr);
 				LinuxPerfUtils::perfEventDisable(pair.second->getFd());
 			}
 			// reset enabled
@@ -146,8 +149,8 @@ namespace LiveProfiler {
 			epoll_(),
 			pidToAddressLocator_(),
 			addressLocatorAllocator_(DefaultMaxFreeAddressLocator),
-			pathAllocator_(),
-			resolverAllocator_() { }
+			pathAllocator_(std::make_shared<decltype(pathAllocator_)::element_type>()),
+			resolverAllocator_(std::make_shared<decltype(resolverAllocator_)::element_type>()) { }
 
 	protected:
 		/** Update the threads to monitor based on `threads_` */
@@ -204,6 +207,7 @@ namespace LiveProfiler {
 
 		/** Unmonitor specified thread, will not access tidToPerfEntry_ */
 		void unmonitorThread(std::unique_ptr<LinuxPerfEntry>&& entry) {
+			assert(entry != nullptr);
 			// unregister from epoll
 			epoll_.del(entry->getFd());
 			// disable events
@@ -214,20 +218,29 @@ namespace LiveProfiler {
 
 		/** Take a sample for executing instruction (actually is the next instruction) */
 		void takeSample(std::unique_ptr<LinuxPerfEntry>& entry) {
+			assert(entry != nullptr);
 			auto data = entry->getData<CpuSampleRawData>();
 			// check type
 			if (data->header.type != PERF_RECORD_SAMPLE) {
 				return;
 			}
 			// find function symbol from instruction pointer
-			auto addressLocatorIt = pidToAddressLocator_.find(data->pid);
+			pid_t pid = data->pid;
+			auto addressLocatorIt = pidToAddressLocator_.find(pid);
 			if (addressLocatorIt == pidToAddressLocator_.end()) {
+				auto pair = pidToAddressLocator_.emplace(pid,
+					addressLocatorAllocator_.allocate(pid, pathAllocator_, resolverAllocator_));
+				addressLocatorIt = pair.first;
 			}
-
+			auto pathAndOffset = addressLocatorIt->second->locate(data->ip, false);
 			std::cout << "pid: " << data->pid <<
 				" tid: " << data->tid <<
 				" ip: 0x" << std::hex << data->ip << std::dec <<
 				" nr: " << data->nr << std::endl;
+			if (pathAndOffset.first != nullptr) {
+				std::cout << *pathAndOffset.first << " " <<
+					std::hex << pathAndOffset.second << std::dec << std::endl;
+			}
 		}
 
 		/** See man perf_events, section PERF_RECORD_SAMPLE */

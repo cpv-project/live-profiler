@@ -1,4 +1,5 @@
 #pragma once
+#include <cassert>
 #include <string>
 #include <memory>
 #include "../../Allocators/SingletonAllocator.hpp"
@@ -27,6 +28,8 @@ namespace LiveProfiler {
 			const std::shared_ptr<SingletonAllocator<std::string, std::string>>& pathAllocator,
 			const std::shared_ptr<SingletonAllocator<
 				std::string, LinuxExecutableSymbolResolver>>& resolverAllocator) {
+			assert(pathAllocator != nullptr);
+			assert(resolverAllocator != nullptr);
 			std::size_t startIndex = 0;
 			std::size_t endIndex = 0;
 			std::size_t partIndex = 0;

@@ -1,6 +1,7 @@
 #pragma once
 #include <memory>
 #include <vector>
+#include <cassert>
 
 namespace LiveProfiler {
 	/**
@@ -31,6 +32,7 @@ namespace LiveProfiler {
 		/** Deallocate T instance */
 		template <class... Args>
 		void deallocate(std::unique_ptr<T>&& instance, Args&&... args) {
+			assert(instance != nullptr);
 			instance->freeResources(std::forward<Args>(args)...);
 			if (free_.size() < maxFree_) {
 				free_.emplace_back(std::move(instance));

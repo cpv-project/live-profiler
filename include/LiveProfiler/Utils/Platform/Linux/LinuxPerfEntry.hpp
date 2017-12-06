@@ -3,6 +3,7 @@
 #include <linux/perf_event.h>
 #include <sys/mman.h>
 #include <vector>
+#include <cassert>
 
 namespace LiveProfiler {
 	/**
@@ -62,7 +63,7 @@ namespace LiveProfiler {
 
 		/** Get metadata struct from mapped memory */
 		const ::perf_event_mmap_page* getMetaPage() const {
-			// no null pointer checking for performance
+			assert(mmapStartAddress_ != nullptr);
 			return reinterpret_cast<::perf_event_mmap_page*>(mmapStartAddress_);
 		}
 
@@ -73,7 +74,8 @@ namespace LiveProfiler {
 		 */
 		template <class T>
 		const T* getData() const {
-			// no null pointer and bound checking for performance
+			assert(mmapDataAddress_ != nullptr);
+			assert(mmapReadOffset_ < mmapDataSize_);
 			return reinterpret_cast<T*>(mmapDataAddress_ + mmapReadOffset_);
 		}
 
