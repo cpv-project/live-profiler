@@ -21,7 +21,10 @@ namespace LiveProfiler {
 		virtual void reset() = 0;
 
 		/** Receive performance data */
-		virtual void feed(const std::vector<Model>& models) = 0;
+		virtual void feed(const std::vector<std::unique_ptr<Model>>& models) = 0;
+
+		/** Base destructor should be virtual */
+		virtual ~BaseAnalyzer() = default;
 	};
 }
 

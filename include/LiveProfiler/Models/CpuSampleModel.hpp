@@ -9,15 +9,11 @@ namespace LiveProfiler {
 		std::uint64_t getIp() const { return ip_; }
 		std::uint64_t getPid() const { return pid_; }
 		std::uint64_t getTid() const { return tid_; }
-		const std::shared_ptr<SymbolName>& getSymbolName() const& { return symbolName_; }
-		const std::vector<std::uint64_t>& getCallChainIps() const& { return callChainIps_; }
-		std::vector<std::uint64_t>& getCallChainIps() & { return callChainIps_; }
-		const std::vector<std::shared_ptr<SymbolName>> getCallChainSymbolNames() const& {
-			return callChainSymbolNames_;
-		}
-		std::vector<std::shared_ptr<SymbolName>> getCallChainSymbolNames() & {
-			return callChainSymbolNames_;
-		}
+		const auto& getSymbolName() const& { return symbolName_; }
+		const auto& getCallChainIps() const& { return callChainIps_; }
+		auto& getCallChainIps() & { return callChainIps_; }
+		const auto& getCallChainSymbolNames() const& { return callChainSymbolNames_; }
+		auto& getCallChainSymbolNames() & { return callChainSymbolNames_; }
 		void setIp(std::uint64_t ip) { ip_ = ip; }
 		void setPid(std::uint64_t pid) { pid_ = pid; }
 		void setTid(std::uint64_t tid) { tid_ = tid; }

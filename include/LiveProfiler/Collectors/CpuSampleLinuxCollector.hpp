@@ -21,6 +21,7 @@ namespace LiveProfiler {
 	class CpuSampleLinuxCollector : public BaseCollector<CpuSampleModel> {
 	public:
 		/** Default parameters */
+		static const std::size_t DefaultMaxFreeResult = 1024;
 		static const std::size_t DefaultMmapPageCount = 16;
 		static const std::size_t DefaultSamplePeriod = 100000;
 		static const std::size_t DefaultMaxFreePerfEntry = 1024;
@@ -52,7 +53,7 @@ namespace LiveProfiler {
 		}
 
 		/** Collect performance data for the specified timeout period */
-		const std::vector<CpuSampleModel>& collect(
+		const std::vector<std::unique_ptr<CpuSampleModel>>& collect(
 			std::chrono::high_resolution_clock::duration timeout) & override {
 			// update the threads to monitor every specified interval
 			auto now = std::chrono::high_resolution_clock::now();
@@ -62,6 +63,11 @@ namespace LiveProfiler {
 				updatePerfEvents();
 				threadsUpdated_ = now;
 			}
+			// clear results
+			for (auto& result : results_) {
+				resultAllocator_.deallocate(std::move(result));
+			}
+			results_.clear();
 			// poll events
 			auto& events = epoll_.wait(timeout);
 			for (auto& event : events) {
@@ -82,7 +88,7 @@ namespace LiveProfiler {
 					tidToPerfEntry_.erase(it);
 				}
 			}
-			return result_;
+			return results_;
 		}
 
 		/** Disable performance data collection */
@@ -126,7 +132,8 @@ namespace LiveProfiler {
 
 		/** Constructor */
 		CpuSampleLinuxCollector() :
-			result_(),
+			results_(),
+			resultAllocator_(DefaultMaxFreeResult),
 			filter_(),
 			threads_(),
 			threadsUpdated_(),
@@ -220,17 +227,23 @@ namespace LiveProfiler {
 		};
 
 	protected:
-		std::vector<CpuSampleModel> result_;
+		std::vector<std::unique_ptr<CpuSampleModel>> results_;
+		FreeListAllocator<CpuSampleModel> resultAllocator_;
+
 		std::function<bool(pid_t)> filter_;
 		std::vector<pid_t> threads_;
 		std::chrono::high_resolution_clock::time_point threadsUpdated_;
 		std::chrono::high_resolution_clock::duration threadsUpdateInterval_;
+
 		std::unordered_map<pid_t, std::unique_ptr<LinuxPerfEntry>> tidToPerfEntry_;
 		FreeListAllocator<LinuxPerfEntry> perfEntryAllocator_;
+
 		std::size_t samplePeriod_;
 		std::size_t mmapPageCount_;
 		bool enabled_;
+
 		LinuxEpollDescriptor epoll_;
+
 		std::unordered_map<pid_t, std::unique_ptr<LinuxProcessAddressLocator>> pidToAddressLocator_;
 		FreeListAllocator<LinuxProcessAddressLocator> addressLocatorAllocator_;
 		std::shared_ptr<SingletonAllocator<std::string, std::string>> pathAllocator_;

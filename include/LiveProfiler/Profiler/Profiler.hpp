@@ -89,7 +89,7 @@ namespace LiveProfiler {
 					break;
 				}
 				auto timeout = time - elapsed;
-				const std::vector<Model>& models = collector->collect(timeout);
+				const auto& models = collector->collect(timeout);
 				for (auto& analyzer : analyzers_) {
 					analyzer->feed(models);
 				}

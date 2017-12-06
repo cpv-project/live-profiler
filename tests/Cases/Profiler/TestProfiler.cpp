@@ -12,19 +12,20 @@ namespace LiveProfilerTests {
 		struct MinimalCollector : BaseCollector<MinimalModel> {
 			std::size_t count = 0;
 			bool enabled = false;
-			std::vector<MinimalModel> result;
+			std::vector<std::unique_ptr<MinimalModel>> result;
 
 			void reset() override { count = 0; }
 			void enable() override { enabled = true; }
 			void disable() override { enabled = false; }
-			const std::vector<MinimalModel>& collect(
+			const std::vector<std::unique_ptr<MinimalModel>>& collect(
 				std::chrono::high_resolution_clock::duration timeout) & override {
 				result.clear();
 				auto start = std::chrono::high_resolution_clock::now();
 				while (result.size() < 5 &&
 					std::chrono::high_resolution_clock::now() - start < timeout) {
 					assert(enabled);
-					result.emplace_back(MinimalModel({ ++count }));
+					result.emplace_back(
+						std::make_unique<MinimalModel>(MinimalModel({ ++count })));
 					std::this_thread::sleep_for(std::chrono::milliseconds(1));
 				}
 				return result;
@@ -35,10 +36,10 @@ namespace LiveProfilerTests {
 			std::size_t lastReceived = 0;
 			
 			void reset() override { lastReceived = 0; }
-			void feed(const std::vector<MinimalModel>& models) override {
+			void feed(const std::vector<std::unique_ptr<MinimalModel>>& models) override {
 				for (const auto& model : models) {
-					assert(lastReceived + 1 == model.count);
-					lastReceived = model.count;
+					assert(lastReceived + 1 == model->count);
+					lastReceived = model->count;
 				}
 			}
 			std::size_t getResult() { return lastReceived; }
