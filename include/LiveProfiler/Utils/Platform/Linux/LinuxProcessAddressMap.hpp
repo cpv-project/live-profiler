@@ -15,7 +15,6 @@ namespace LiveProfiler {
 		std::uintptr_t getEndAddress() const { return endAddress_; }
 		std::uintptr_t getFileOffset() const { return fileOffset_; }
 		const std::shared_ptr<std::string>& getPath() const& { return path_; }
-		const std::shared_ptr<LinuxExecutableSymbolResolver>& getResolver() const& { return resolver_; }
 
 		/**
 		 * Line format:
@@ -25,11 +24,8 @@ namespace LiveProfiler {
 		 */
 		bool parseLine(
 			const std::string& line,
-			const std::shared_ptr<SingletonAllocator<std::string, std::string>>& pathAllocator,
-			const std::shared_ptr<SingletonAllocator<
-				std::string, LinuxExecutableSymbolResolver>>& resolverAllocator) {
+			const std::shared_ptr<SingletonAllocator<std::string, std::string>>& pathAllocator) {
 			assert(pathAllocator != nullptr);
-			assert(resolverAllocator != nullptr);
 			std::size_t startIndex = 0;
 			std::size_t endIndex = 0;
 			std::size_t partIndex = 0;
@@ -38,7 +34,6 @@ namespace LiveProfiler {
 			endAddress_ = 0;
 			fileOffset_ = 0;
 			path_.reset();
-			resolver_.reset();
 			// split line with blank characters
 			static const char blankChars[] = " \t\n";
 			std::size_t successParts = 0;
@@ -72,7 +67,6 @@ namespace LiveProfiler {
 					const char* pathPtr = line.c_str() + startIndex;
 					std::size_t pathSize = endIndex - startIndex;
 					path_ = pathAllocator->allocate(pathPtr, pathSize);
-					resolver_ = resolverAllocator->allocate(*path_);
 					++successParts;
 				}
 				index = line.find_first_not_of(blankChars, endIndex);
@@ -82,7 +76,6 @@ namespace LiveProfiler {
 			// handle empty pathname
 			if (partIndex == 5 && successParts == 2) {
 				path_ = pathAllocator->allocate("", 0);
-				resolver_ = resolverAllocator->allocate(*path_);
 				++successParts;
 			}
 			// is all address, offset, pathname parse successful?
@@ -94,15 +87,13 @@ namespace LiveProfiler {
 			startAddress_(0),
 			endAddress_(0),
 			fileOffset_(0),
-			path_(),
-			resolver_() { }
+			path_() { }
 
 	protected:
 		std::uintptr_t startAddress_;
 		std::uintptr_t endAddress_;
 		std::uintptr_t fileOffset_;
 		std::shared_ptr<std::string> path_;
-		std::shared_ptr<LinuxExecutableSymbolResolver> resolver_;
 	};
 }
 

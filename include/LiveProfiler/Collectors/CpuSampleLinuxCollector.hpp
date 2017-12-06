@@ -229,7 +229,7 @@ namespace LiveProfiler {
 			auto addressLocatorIt = pidToAddressLocator_.find(pid);
 			if (addressLocatorIt == pidToAddressLocator_.end()) {
 				auto pair = pidToAddressLocator_.emplace(pid,
-					addressLocatorAllocator_.allocate(pid, pathAllocator_, resolverAllocator_));
+					addressLocatorAllocator_.allocate(pid, pathAllocator_));
 				addressLocatorIt = pair.first;
 			}
 			auto pathAndOffset = addressLocatorIt->second->locate(data->ip, false);
@@ -237,10 +237,6 @@ namespace LiveProfiler {
 				" tid: " << data->tid <<
 				" ip: 0x" << std::hex << data->ip << std::dec <<
 				" nr: " << data->nr << std::endl;
-			if (pathAndOffset.first != nullptr) {
-				std::cout << *pathAndOffset.first << " " <<
-					std::hex << pathAndOffset.second << std::dec << std::endl;
-			}
 		}
 
 		/** See man perf_events, section PERF_RECORD_SAMPLE */

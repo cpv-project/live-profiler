@@ -9,7 +9,6 @@
 #include <algorithm>
 #include "../../Allocators/SingletonAllocator.hpp"
 #include "../../Containers/StackBuffer.hpp"
-#include "LinuxExecutableSymbolResolver.hpp"
 #include "LinuxProcessAddressMap.hpp"
 
 namespace LiveProfiler {
@@ -28,8 +27,7 @@ namespace LiveProfiler {
 		/**
 		 * Locate file path and offset for the specified address.
 		 * Return (nullptr, 0) if locate failed.
-		 * When `forceReload` option is true,
-		 * maps will be force to reload after first locate is failed,
+		 * When `forceReload` option is true, maps will be force to reload after first locate is failed,
 		 * it can ensure no newly mapped address is missed but may reduce performance.
 		 */
 		std::pair<std::shared_ptr<std::string>, std::ptrdiff_t> locate(
@@ -68,7 +66,7 @@ namespace LiveProfiler {
 			LinuxProcessAddressMap map;
 			maps_.clear();
 			while (std::getline(file, line_)) {
-				if (map.parseLine(line_, pathAllocator_, resolverAllocator_)) {
+				if (map.parseLine(line_, pathAllocator_)) {
 					maps_.emplace_back(std::move(map));
 				}
 			}
@@ -82,21 +80,16 @@ namespace LiveProfiler {
 		/** For FreeListAllocator */
 		void freeResources() {
 			pathAllocator_ = nullptr;
-			resolverAllocator_ = nullptr;
 			maps_.clear();
 		}
 
 		/** For FreeListAllocator */
 		void reset(
 			pid_t pid,
-			const std::shared_ptr<SingletonAllocator<std::string, std::string>>& pathAllocator,
-			const std::shared_ptr<SingletonAllocator<
-				std::string, LinuxExecutableSymbolResolver>>& resolverAllocator) {
+			const std::shared_ptr<SingletonAllocator<std::string, std::string>>& pathAllocator) {
 			assert(pathAllocator != nullptr);
-			assert(resolverAllocator != nullptr);
 			pid_ = pid;
 			pathAllocator_ = pathAllocator;
-			resolverAllocator_ = resolverAllocator;
 			maps_.clear();
 			mapsUpdated_ = {};
 			mapsPathBuffer_.clear();
@@ -107,7 +100,6 @@ namespace LiveProfiler {
 		LinuxProcessAddressLocator() :
 			pid_(0),
 			pathAllocator_(nullptr),
-			resolverAllocator_(nullptr),
 			maps_(),
 			mapsUpdated_(),
 			mapsUpdateMinInterval_(std::chrono::milliseconds(DefaultMapsUpdateMinInterval)),
@@ -135,7 +127,6 @@ namespace LiveProfiler {
 	protected:
 		pid_t pid_;
 		std::shared_ptr<SingletonAllocator<std::string, std::string>> pathAllocator_;
-		std::shared_ptr<SingletonAllocator<std::string, LinuxExecutableSymbolResolver>> resolverAllocator_;
 		std::vector<LinuxProcessAddressMap> maps_;
 		std::chrono::high_resolution_clock::time_point mapsUpdated_;
 		std::chrono::high_resolution_clock::duration mapsUpdateMinInterval_;

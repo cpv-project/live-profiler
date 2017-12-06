@@ -1,5 +1,7 @@
 #pragma once
+#include <cassert>
 #include <vector>
+#include "../../../Models/Shared/SymbolName.hpp"
 
 namespace LiveProfiler {
 	/**
@@ -9,9 +11,22 @@ namespace LiveProfiler {
 	 */
 	class LinuxExecutableSymbolResolver {
 	public:
-		LinuxExecutableSymbolResolver(const std::string& path) {
+		/** Getters */
+		const std::shared_ptr<std::string>& getPath() const& { return path_; }
+
+		/** Constructor */
+		LinuxExecutableSymbolResolver(const std::string&) :
+			path_(),
+			symbolNames_() { }
+
+		/** Resolve symbol name from offset, return nullptr if not found */
+		std::shared_ptr<SymbolName> resolve(std::size_t offset) {
+			return nullptr;
 		}
+
 	protected:
+		std::shared_ptr<std::string> path_;
+		std::vector<std::shared_ptr<SymbolName>> symbolNames_;
 	};
 }
 
