@@ -160,7 +160,7 @@ namespace LiveProfiler {
 				}
 				tidToPerfEntry_.emplace(tid, monitorThread(tid));
 			}
-			// find out which threads no longer exist
+			// find out which threads no longer exist and clear tidToPerfEntry_
 			for (auto it = tidToPerfEntry_.begin(); it != tidToPerfEntry_.end();) {
 				pid_t tid = it->first;
 				if (std::binary_search(threads_.cbegin(), threads_.cend(), tid)) {
@@ -170,6 +170,17 @@ namespace LiveProfiler {
 					// thread no longer exist
 					unmonitorThread(std::move(it->second));
 					it = tidToPerfEntry_.erase(it);
+				}
+			}
+			// find out which processes no longer exist and clear pidToAddressLocator_
+			for (auto it = pidToAddressLocator_.begin(); it != pidToAddressLocator_.end();) {
+				pid_t pid = it->first;
+				if (std::binary_search(threads_.cbegin(), threads_.cend(), pid)) {
+					// process still exist
+					++it;
+				} else {
+					// process no longer exist
+					it = pidToAddressLocator_.erase(it);
 				}
 			}
 		}
@@ -208,8 +219,11 @@ namespace LiveProfiler {
 			if (data->header.type != PERF_RECORD_SAMPLE) {
 				return;
 			}
-			// TODO
 			// find function symbol from instruction pointer
+			auto addressLocatorIt = pidToAddressLocator_.find(data->pid);
+			if (addressLocatorIt == pidToAddressLocator_.end()) {
+			}
+
 			std::cout << "pid: " << data->pid <<
 				" tid: " << data->tid <<
 				" ip: 0x" << std::hex << data->ip << std::dec <<

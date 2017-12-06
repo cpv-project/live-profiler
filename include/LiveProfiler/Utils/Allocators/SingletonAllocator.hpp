@@ -21,15 +21,20 @@ namespace LiveProfiler {
 			return it->second;
 		}
 
+		/** Allocate T instance, avoid universal reference overload take TKey&& */
+		std::shared_ptr<T> allocate(TKey&& key) {
+			return allocate(static_cast<const TKey&>(key));
+		}
+
 		/**
 		 * Allocate T instance.
 		 * Use a temporary key to avoid memory allocation.
 		 * T should be std::string or any types that have `assign` function.
 		 */
 		template <class... Args>
-		std::shared_ptr<T> allocate(const Args&... args) {
-			tempKey_.assign(args...);
-			return allocate(tempKey_);
+		std::shared_ptr<T> allocate(Args&&... args) {
+			tempKey_.assign(std::forward<Args>(args)...);
+			return allocate(static_cast<const TKey&>(tempKey_));
 		}
 
 		/** Constructor */
