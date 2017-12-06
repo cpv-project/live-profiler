@@ -6,10 +6,13 @@
 #include "BaseCollector.hpp"
 #include "../Models/CpuSampleModel.hpp"
 #include "../Utils/Allocators/FreeListAllocator.hpp"
-#include "../Utils/Platform/Linux/LinuxProcessUtils.hpp"
+#include "../Utils/Allocators/SingletonAllocator.hpp"
+#include "../Utils/Platform/Linux/LinuxEpollDescriptor.hpp"
+#include "../Utils/Platform/Linux/LinuxExecutableSymbolResolver.hpp"
 #include "../Utils/Platform/Linux/LinuxPerfEntry.hpp"
 #include "../Utils/Platform/Linux/LinuxPerfUtils.hpp"
-#include "../Utils/Platform/Linux/LinuxEpollDescriptor.hpp"
+#include "../Utils/Platform/Linux/LinuxProcessAddressLocator.hpp"
+#include "../Utils/Platform/Linux/LinuxProcessUtils.hpp"
 
 namespace LiveProfiler {
 	/**
@@ -21,6 +24,7 @@ namespace LiveProfiler {
 		static const std::size_t DefaultMmapPageCount = 16;
 		static const std::size_t DefaultSamplePeriod = 100000;
 		static const std::size_t DefaultMaxFreePerfEntry = 1024;
+		static const std::size_t DefaultMaxFreeAddressLocator = 1024;
 
 		/** Reset the state to it's initial state */
 		void reset() override {
@@ -132,7 +136,11 @@ namespace LiveProfiler {
 			samplePeriod_(DefaultSamplePeriod),
 			mmapPageCount_(DefaultMmapPageCount),
 			enabled_(false),
-			epoll_() { }
+			epoll_(),
+			pidToAddressLocator_(),
+			addressLocatorAllocator_(DefaultMaxFreeAddressLocator),
+			pathAllocator_(),
+			resolverAllocator_() { }
 
 	protected:
 		/** Update the threads to monitor based on `threads_` */
@@ -223,6 +231,10 @@ namespace LiveProfiler {
 		std::size_t mmapPageCount_;
 		bool enabled_;
 		LinuxEpollDescriptor epoll_;
+		std::unordered_map<pid_t, std::unique_ptr<LinuxProcessAddressLocator>> pidToAddressLocator_;
+		FreeListAllocator<LinuxProcessAddressLocator> addressLocatorAllocator_;
+		std::shared_ptr<SingletonAllocator<std::string, std::string>> pathAllocator_;
+		std::shared_ptr<SingletonAllocator<std::string, LinuxExecutableSymbolResolver>> resolverAllocator_;
 	};
 }
 
