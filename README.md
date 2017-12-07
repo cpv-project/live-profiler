@@ -15,35 +15,36 @@ There are some concepts in the design:
 - Model: The model contains the data that needs to be analyzed
 - Collector: The collector collect the model data in real time
 - Analyzer: The analyzers take the model data and generate the report in real time
-- Profiler: The entry point class coordinate collector and analyzers
+- Interceptor: The interceptors alter the model data in real time
+- Profiler: The entry point class coordinate collector, analyzers and interceptors
 
 ``` text
-+--------------------------------------------------------------+
-| Profiler                                                     |
-|                                                +----------+  |
-|                                       +--------> Analyzer |  |
-|                                       |        +----------+  |
-|                                       |                      |
-|  +-----------+   +----------+   +-----+----+   +----------+  |
-|  | Collector +->-+Model Data+->-+Model Data+---> Analyzer |  |
-|  +-----------+   +----------+   +-----+----+   +----------+  |
-|                                       |                      |
-|                                       |        +----------+  |
-|                                       +--------> Analyzer |  |
-|                                                +----------+  |
-|                                                              |
-+--------------------------------------------------------------+
++------------------------------------------------------------------------------+
+| Profiler                                                                     |
+|                                                                 +----------+ |
+|                                                        +--------> Analyzer | |
+|                                                        |        +----------+ |
+|                                                        |                     |
+|  +-----------+   +----------+   +-----------+   +------+----+   +----------+ |
+|  | Collector +---+Model Data+---+Interceptor+---+Model Data'+---> Analyzer | |
+|  +-----------+   +----------+   +-----------+   +------+----+   +----------+ |
+|                                                        |                     |
+|                                                        |        +----------+ |
+|                                                        +--------> Analyzer | |
+|                                                                 +----------+ |
+|                                                                              |
++------------------------------------------------------------------------------+
 ```
 
 Different to many profiler, model data is handed over to analyzer in real time,<br/>
 the analyzer has the right to choose whether to incremental update the report or analysis at once,<br/>
 incremental updates can reduce memory footprint and allocation, which improves performance.
 
-The profiler should have exactly one collector and may have one or more analyzers,<br/>
+The profiler should have exactly one collector and may have one or more analyzers or interceptors,<br/>
 this is because some collector may use io multiplexing mechanism to wait for events,<br/>
 and other may periodically polls the data, mixing them will create a lot of problems.<br/>
 For now if you want to use multiple collectors you should create multiple profilers and run them in different threads.<br/>
-Unlike collector, analyzer should be non blocking, so multiple analyzers is allowed.<br/>
+Unlike collector, analyzers and interceptors should be non blocking, so more than one is allowed.<br/>
 
 Each analyzer may return different types of report,<br/>
 you can dump them to console, generate a graph, or send to an APM service,<br/>
@@ -54,6 +55,10 @@ anyway you should write your own code to handle the report.<br/>
 TODO
 
 # Implemented Analyzers
+
+TODO
+
+# Implemented Interceptors
 
 TODO
 
