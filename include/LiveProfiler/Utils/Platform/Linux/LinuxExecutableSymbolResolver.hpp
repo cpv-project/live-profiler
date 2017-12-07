@@ -79,10 +79,10 @@ namespace LiveProfiler {
 			unsigned int miniSymbolSize = 0;
 			std::size_t miniSymbolCount = bfd_read_minisymbols(
 				file, false, &miniSymbols, &miniSymbolSize);
-			if (miniSymbolCount == 0 || miniSymbols == nullptr) {
+			std::unique_ptr<void, void(*)(void*)> miniSymbolsPtr(miniSymbols, ::free);
+			if (miniSymbolCount == 0 ||  miniSymbols == nullptr) {
 				return;
 			}
-			std::unique_ptr<void, void(*)(void*)> miniSymbolsPtr(miniSymbols, ::free);
 			// load symbol sizes and append to symbolNames_
 			bfd_byte* miniSymbolsFrom = reinterpret_cast<bfd_byte*>(miniSymbols);
 			bfd_byte* miniSymbolsTo = miniSymbolsFrom + miniSymbolSize * miniSymbolCount;
