@@ -13,8 +13,13 @@ namespace LiveProfilerTests {
 		collector->filterProcessByName("LiveProfilerTest");
 
 		std::atomic_bool flag(true);
-		std::thread t([&flag] {
-			while (flag) { }
+		std::atomic_int n(0);
+		std::thread t([&flag, &n] {
+			while (flag) {
+				++n;
+				++n;
+				++n;
+			}
 		});
 
 		for (std::size_t i = 0; i < 3; ++i) {
