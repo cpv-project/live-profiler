@@ -220,6 +220,8 @@ namespace LiveProfiler {
 		void takeSample(std::unique_ptr<LinuxPerfEntry>& entry) {
 			assert(entry != nullptr);
 			auto data = entry->getData<CpuSampleRawData>();
+			// update read offset
+			entry->updateReadOffset();
 			// check type
 			if (data->header.type != PERF_RECORD_SAMPLE) {
 				return;
