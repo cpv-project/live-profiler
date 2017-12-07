@@ -138,15 +138,23 @@ namespace LiveProfiler {
 					// guestSize may less than size if file only contains the first part
 					size = guessSize;
 				}
+				// demangle name, these flags are defined in demangle.h in binutils
+				static const int DMGL_ANSI = (1 << 1);
+				static const int DMGL_PARAMS = (1 << 0);
+				const char* originalName = bfd_asymbol_name(symbol);
+				char* demangleName = ::bfd_demangle(file, originalName, DMGL_ANSI | DMGL_PARAMS);
+				std::unique_ptr<char, void(*)(void*)> demangleNamePtr(demangleName, ::free);
 				// append to symbolNames_
 				auto symbolName = std::make_shared<SymbolName>();
-				symbolName->setOriginalName(bfd_asymbol_name(symbol));
+				symbolName->setOriginalName(originalName);
+				symbolName->setDemangleName((demangleName != nullptr) ? demangleName : "");
 				symbolName->setPath(path_);
 				symbolName->setFileOffset(bfd_asymbol_value(symbol));
 				symbolName->setSymbolSize(size);
 				symbolNames_.emplace_back(std::move(symbolName));
 			}
 			// symbolNames_ should be already sorted by file offset
+			// the order of symbol names that have same file offset is undefined for now
 		}
 
 	protected:

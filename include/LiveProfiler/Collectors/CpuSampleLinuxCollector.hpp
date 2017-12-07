@@ -241,7 +241,7 @@ namespace LiveProfiler {
 				auto resolver = resolverAllocator_->allocate(pathAndOffset.first);
 				auto symbolName = resolver->resolve(pathAndOffset.second);
 				if (symbolName != nullptr) {
-					std::cout << symbolName->getOriginalName() << std::endl;
+					std::cout << symbolName->getDemangleName() << std::endl;
 				}
 			}
 		}
