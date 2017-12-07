@@ -49,10 +49,6 @@ Each analyzer may return different types of report,<br/>
 you can dump them to console, generate a graph, or send to an APM service,<br/>
 anyway you should write your own code to handle the report.<br/>
 
-# How To Use
-
-TODO
-
 # Implemented Collectors
 
 TODO
@@ -65,6 +61,9 @@ TODO
 
 C++ compiler support at least c++14
 
+# How To Use
+
+TODO
 
 # Examples
 
