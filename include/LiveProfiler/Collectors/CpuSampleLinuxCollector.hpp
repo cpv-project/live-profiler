@@ -237,6 +237,13 @@ namespace LiveProfiler {
 				" tid: " << data->tid <<
 				" ip: 0x" << std::hex << data->ip << std::dec <<
 				" nr: " << data->nr << std::endl;
+			if (pathAndOffset.first != nullptr) {
+				auto resolver = resolverAllocator_->allocate(pathAndOffset.first);
+				auto symbolName = resolver->resolve(pathAndOffset.second);
+				if (symbolName != nullptr) {
+					std::cout << symbolName->getOriginalName() << std::endl;
+				}
+			}
 		}
 
 		/** See man perf_events, section PERF_RECORD_SAMPLE */

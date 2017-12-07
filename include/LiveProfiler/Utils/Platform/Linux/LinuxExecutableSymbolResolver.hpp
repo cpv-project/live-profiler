@@ -35,7 +35,7 @@ namespace LiveProfiler {
 				});
 			// find out which previous symbol contains this offset
 			// only check the symbols that have same address with the first
-			// [ ...s', s', s, s, s, it ]: check [s, s, s]
+			// gives [ ..., s', s', s, s, s, it, ... ], check [s, s, s]
 			std::size_t fileOffset = 0;
 			for (bool isFirst = true; it != symbolNames_.cbegin(); isFirst = false) {
 				--it;
