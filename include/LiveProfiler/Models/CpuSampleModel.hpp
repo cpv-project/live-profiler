@@ -2,7 +2,12 @@
 #include "./Shared/SymbolName.hpp"
 
 namespace LiveProfiler {
-	/** Represent a point of execution */
+	/**
+	 * Represent a point of execution.
+	 * Result from `getCallChainIps` and `getCallChainSymbolNames` should have same size.
+	 * It's valid that `getSymbolName` returns nullptr,
+	 * and `getCallChainSymbolNames` returns a vector which contains some nullptr.
+	 */
 	class CpuSampleModel {
 	public:
 		/** Getters and setters */

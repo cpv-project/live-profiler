@@ -226,7 +226,12 @@ namespace LiveProfiler {
 			if (data->header.type != PERF_RECORD_SAMPLE) {
 				return;
 			}
-			// find function symbol from instruction pointer
+			// setup model data
+			auto result = resultAllocator_.allocate();
+			result->setIp(data->ip);
+			result->setPid(data->pid);
+			result->setTid(data->tid);
+			// resolve symbol names
 			pid_t pid = data->pid;
 			auto addressLocatorIt = pidToAddressLocator_.find(pid);
 			if (addressLocatorIt == pidToAddressLocator_.end()) {
@@ -235,17 +240,31 @@ namespace LiveProfiler {
 				addressLocatorIt = pair.first;
 			}
 			auto pathAndOffset = addressLocatorIt->second->locate(data->ip, false);
-			std::cout << "pid: " << data->pid <<
-				" tid: " << data->tid <<
-				" ip: 0x" << std::hex << data->ip << std::dec <<
-				" nr: " << data->nr << std::endl;
 			if (pathAndOffset.first != nullptr) {
-				auto resolver = resolverAllocator_->allocate(pathAndOffset.first);
-				auto symbolName = resolver->resolve(pathAndOffset.second);
-				if (symbolName != nullptr) {
-					std::cout << symbolName->getDemangleName() << std::endl;
+				auto resolver = resolverAllocator_->allocate(std::move(pathAndOffset.first));
+				result->setSymbolName(resolver->resolve(pathAndOffset.second));
+			}
+			auto& callChainIps = result->getCallChainIps();
+			auto& callChainSymbolNames = result->getCallChainSymbolNames();
+			for (std::size_t i = 0; i < data->nr; ++i) {
+				auto callChainIp = data->ips[i];
+				// TODO: resolve kernel call
+				// TODO: resolve libc call
+				// TODO: callchain is not backtrace
+				// if (callChainIp == data->ip) {
+				// 	continue; // don't record top ip (i = 1) and bottom ip
+				// }
+				callChainIps.emplace_back(callChainIp);
+				pathAndOffset = addressLocatorIt->second->locate(callChainIp, false);
+				if (pathAndOffset.first == nullptr) {
+					callChainSymbolNames.emplace_back(nullptr);
+				} else {
+					auto resolver = resolverAllocator_->allocate(std::move(pathAndOffset.first));
+					callChainSymbolNames.emplace_back(resolver->resolve(pathAndOffset.second));
 				}
 			}
+			// append model data
+			results_.emplace_back(std::move(result));
 		}
 
 		/** See man perf_events, section PERF_RECORD_SAMPLE */
