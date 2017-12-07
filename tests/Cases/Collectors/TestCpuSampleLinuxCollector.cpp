@@ -23,6 +23,7 @@ namespace LiveProfilerTests {
 		}
 		flag = false;
 		t.join();
+		// TODO
 	}
 
 	void testCpuSampleLinuxCollector() {
