@@ -4,9 +4,11 @@
 #include <utility>
 #include <chrono>
 #include <algorithm>
+#include <type_traits>
 #include "../Exceptions/ProfilerException.hpp"
 #include "../Collectors/BaseCollector.hpp"
 #include "../Analyzers/BaseAnalyzer.hpp"
+#include "../Interceptors/BaseInterceptor.hpp"
 
 namespace LiveProfiler {
 	/**
@@ -18,7 +20,8 @@ namespace LiveProfiler {
 	 * - The profiler may have one or more analyzers
 	 * - The profiler should not be copied, or used in multiple threads
 	 * - The collector should not know there is a class called Profiler
-	 * - The analyzer should not know there is a class called Profiler
+	 * - The analyzers should not know there is a class called Profiler
+	 * - The interceptors should not know there is a class called Profiler
 	 *
 	 * How does it work:
 	 * When function `collectFor` is called,
@@ -35,11 +38,7 @@ namespace LiveProfiler {
 		using ProfilerType = std::shared_ptr<Profiler<Model>>;
 		using CollectorType = std::shared_ptr<BaseCollector<Model>>;
 		using AnalyzerType = std::shared_ptr<BaseAnalyzer<Model>>;
-
-		/** Constructor */
-		Profiler() :
-			collector_(),
-			analyzers_() { }
+		using InterceptorType = std::shared_ptr<BaseInterceptor<Model>>;
 
 		/** Use specified collector, replaces the old collector if this function is called twice */
 		template <class Collector, class... Args>
@@ -65,11 +64,30 @@ namespace LiveProfiler {
 			return removed;
 		}
 
+		/** Add interceptor to interceptor list */
+		template <class Interceptor, class... Args>
+		std::shared_ptr<Interceptor> addInterceptor(Args&&... args) {
+			auto interceptor = std::make_shared<Interceptor>(std::forward<Args>(args)...);
+			interceptors_.emplace_back(interceptor);
+			return interceptor;
+		}
+
+		/** Remove interceptor from interceptor list, return whether the interceptor is in the list */
+		bool removeInterceptor(const InterceptorType& interceptor) {
+			auto it = std::remove(interceptors_.begin(), interceptors_.end(), interceptor);
+			auto removed = it != interceptors_.end();
+			interceptors_.erase(it, interceptors_.end());
+			return removed;
+		}
+
 		/** Reset state of collectors and analyzers */
 		void reset() {
 			collector_->reset();
 			for (auto& analyzer : analyzers_) {
 				analyzer->reset();
+			}
+			for (auto& interceptor : interceptors_) {
+				interceptor->reset();
 			}
 		}
 
@@ -89,12 +107,21 @@ namespace LiveProfiler {
 					break;
 				}
 				auto timeout = time - elapsed;
-				const auto& models = collector->collect(timeout);
+				auto& models = collector->collect(timeout);
+				for (auto& interceptor : interceptors_) {
+					interceptor->alter(models);
+				}
 				for (auto& analyzer : analyzers_) {
 					analyzer->feed(models);
 				}
 			}
 		}
+
+		/** Constructor */
+		Profiler() :
+			collector_(),
+			analyzers_(),
+			interceptors_() { }
 	
 	protected:
 		/** Disable copy */
@@ -117,6 +144,7 @@ namespace LiveProfiler {
 	protected:
 		CollectorType collector_;
 		std::vector<AnalyzerType> analyzers_;
+		std::vector<InterceptorType> interceptors_;
 	};
 }
 

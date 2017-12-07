@@ -75,7 +75,8 @@ namespace LiveProfiler {
 		template <class T>
 		const T* getData() const {
 			assert(mmapDataAddress_ != nullptr);
-			assert(mmapReadOffset_ + sizeof(T) <= mmapDataSize_);
+			// should not be sizeof(T) because some data isn't sample data
+			assert(mmapReadOffset_ + sizeof(::perf_event_header) <= mmapDataSize_);
 			return reinterpret_cast<T*>(mmapDataAddress_ + mmapReadOffset_);
 		}
 

@@ -55,7 +55,7 @@ namespace LiveProfiler {
 		}
 
 		/** Collect performance data for the specified timeout period */
-		const std::vector<std::unique_ptr<CpuSampleModel>>& collect(
+		std::vector<std::unique_ptr<CpuSampleModel>>& collect(
 			std::chrono::high_resolution_clock::duration timeout) & override {
 			// update the threads to monitor every specified interval
 			auto now = std::chrono::high_resolution_clock::now();
@@ -247,6 +247,7 @@ namespace LiveProfiler {
 			auto& callChainIps = result->getCallChainIps();
 			auto& callChainSymbolNames = result->getCallChainSymbolNames();
 			for (std::size_t i = 0; i < data->nr; ++i) {
+				std::cout << i << " " << data->nr << std::endl;
 				auto callChainIp = data->ips[i];
 				// TODO: resolve kernel call
 				// TODO: resolve libc call

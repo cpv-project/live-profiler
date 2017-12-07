@@ -17,7 +17,7 @@ namespace LiveProfilerTests {
 			void reset() override { count = 0; }
 			void enable() override { enabled = true; }
 			void disable() override { enabled = false; }
-			const std::vector<std::unique_ptr<MinimalModel>>& collect(
+			std::vector<std::unique_ptr<MinimalModel>>& collect(
 				std::chrono::high_resolution_clock::duration timeout) & override {
 				result.clear();
 				auto start = std::chrono::high_resolution_clock::now();
@@ -34,15 +34,27 @@ namespace LiveProfilerTests {
 
 		struct MinimalAnalyzer : BaseAnalyzer<MinimalModel> {
 			std::size_t lastReceived = 0;
+			std::size_t adjust = 0;
 			
-			void reset() override { lastReceived = 0; }
+			void reset() override { lastReceived = 0; adjust = 0; }
 			void feed(const std::vector<std::unique_ptr<MinimalModel>>& models) override {
 				for (const auto& model : models) {
-					assert(lastReceived + 1 == model->count);
-					lastReceived = model->count;
+					assert(lastReceived + 1 + adjust == model->count);
+					lastReceived = model->count - adjust;
 				}
 			}
 			std::size_t getResult() { return lastReceived; }
+		};
+
+		struct MinimalInterceptor : BaseInterceptor<MinimalModel> {
+			std::size_t adjust = 0;
+			
+			void reset() override { adjust = 0; }
+			void alter(std::vector<std::unique_ptr<MinimalModel>>& models) override {
+				for (auto& model : models) {
+					model->count += adjust;
+				}
+			}
 		};
 	}
 
@@ -93,10 +105,28 @@ namespace LiveProfilerTests {
 		assert(analyzerB->getResult() == 0);
 	}
 
+	void testProfilerWithInterceptor() {
+		Profiler<MinimalModel> profiler;
+		auto collector = profiler.useCollector<MinimalCollector>();
+		auto analyzer = profiler.addAnalyzer<MinimalAnalyzer>();
+		auto interceptor = profiler.addInterceptor<MinimalInterceptor>();
+		analyzer->adjust = 3;
+		interceptor->adjust = analyzer->adjust;
+
+		profiler.collectFor(std::chrono::milliseconds(20));
+		assert(!collector->enabled);
+		assert(analyzer->getResult() > analyzer->adjust);
+		
+		profiler.reset();
+		assert(analyzer->adjust == 0);
+		assert(interceptor->adjust == 0);
+	}
+
 	void testProfiler() {
 		std::cout << __func__ << std::endl;
 		testProfilerThrowsWhenCollectorNotSet();
 		testProfilerWithMinimalModel();
+		testProfilerWithInterceptor();
 	}
 }
 
