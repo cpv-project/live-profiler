@@ -38,9 +38,12 @@ namespace LiveProfiler {
 		/** Setup perf sample monitor for specified process */
 		static bool monitorSample(
 			std::unique_ptr<LinuxPerfEntry>& entry,
-			std::size_t samplePeriod,
-			std::size_t mmapPageCount,
-			std::uint64_t sample_type) {
+			std::uint32_t type, // eg: PERF_TYPE_SOFTWARE
+			std::uint64_t config, // eg: PERF_COUNT_SW_CPU_CLOCK
+			std::uint64_t samplePeriod, // eg: 100000
+			std::uint64_t sampleType, // eg: PERF_SAMPLE_IP | PERF_SAMPLE_TID
+			std::size_t mmapPageCount, // eg: 16, should be power of 2
+			std::uint32_t wakeupEvents) { // eg: 8, atleast 1
 			// caller should set a valid pid
 			auto pid = entry->getPid();
 			if (pid <= 0) {
@@ -48,14 +51,14 @@ namespace LiveProfiler {
 			}
 			// setup attributes
 			auto& attr = entry->getAttrRef();
+			attr.type = type;
 			attr.size = sizeof(attr);
-			attr.type = PERF_TYPE_SOFTWARE;
-			attr.config = PERF_COUNT_SW_CPU_CLOCK;
+			attr.config = config;
 			attr.sample_period = samplePeriod;
-			attr.sample_type = sample_type;
+			attr.sample_type = sampleType;
 			attr.disabled = 1;
 			attr.inherit = 0;
-			attr.wakeup_events = 1;
+			attr.wakeup_events = wakeupEvents;
 			attr.exclude_kernel = 1;
 			attr.exclude_hv = 1;
 			// open file descriptor
@@ -76,7 +79,8 @@ namespace LiveProfiler {
 			if (address == nullptr || reinterpret_cast<intptr_t>(address) == -1) {
 				throw ProfilerException(errno, "[monitorSample] mmap");
 			}
-			entry->setMmapAddress(reinterpret_cast<char*>(address), totalSize, pageSize);
+			entry->setMmapAddress(
+				reinterpret_cast<char*>(address), totalSize, pageSize, wakeupEvents);
 			return true;
 		}
 	};

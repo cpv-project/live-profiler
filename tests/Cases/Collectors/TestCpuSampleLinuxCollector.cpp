@@ -54,7 +54,7 @@ namespace LiveProfilerTests {
 	void testCpuSampleLinuxCollectorWithSelfProcess() {
 		Profiler<CpuSampleModel> profiler;
 		auto collector = profiler.useCollector<CpuSampleLinuxCollector>();
-		// auto analyzer = profiler.addAnalyzer<TestAnalyzer>();
+		auto analyzer = profiler.addAnalyzer<TestAnalyzer>();
 		auto interceptor = profiler.addInterceptor<CpuSampleLinuxSymbolResolveInterceptor>();
 		collector->filterProcessByName("LiveProfilerTest");
 

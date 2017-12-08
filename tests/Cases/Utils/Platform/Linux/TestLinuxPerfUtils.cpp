@@ -77,7 +77,13 @@ namespace LiveProfilerTests {
 		auto tid = busyThread.start();
 		entry->setPid(tid);
 		auto ret = LinuxPerfUtils::monitorSample(
-			entry, 100000, 32, PERF_SAMPLE_TID | PERF_SAMPLE_IP);
+			entry,
+			PERF_TYPE_SOFTWARE,
+			PERF_COUNT_SW_CPU_CLOCK,
+			100000,
+			PERF_SAMPLE_IP | PERF_SAMPLE_TID,
+			16,
+			1);
 		assert(ret);
 		LinuxPerfUtils::perfEventEnable(entry->getFd(), true);
 		epoll.add(entry->getFd(), EPOLLIN, tid);
@@ -96,7 +102,13 @@ namespace LiveProfilerTests {
 		auto tid = busyThread.start();
 		entry->setPid(tid);
 		auto ret = LinuxPerfUtils::monitorSample(
-			entry, 100000, 32, PERF_SAMPLE_TID | PERF_SAMPLE_IP);
+			entry,
+			PERF_TYPE_SOFTWARE,
+			PERF_COUNT_SW_CPU_CLOCK,
+			100000,
+			PERF_SAMPLE_IP | PERF_SAMPLE_TID,
+			16,
+			1);
 		assert(ret);
 		LinuxPerfUtils::perfEventEnable(entry->getFd(), true);
 		LinuxPerfUtils::perfEventDisable(entry->getFd());
@@ -114,7 +126,13 @@ namespace LiveProfilerTests {
 		auto tid = busyThread.start();
 		entry->setPid(tid);
 		auto ret = LinuxPerfUtils::monitorSample(
-			entry, 100000, 32, PERF_SAMPLE_TID | PERF_SAMPLE_IP);
+			entry,
+			PERF_TYPE_SOFTWARE,
+			PERF_COUNT_SW_CPU_CLOCK,
+			100000,
+			PERF_SAMPLE_IP | PERF_SAMPLE_TID,
+			16,
+			2);
 		assert(ret);
 		LinuxPerfUtils::perfEventEnable(entry->getFd(), true);
 		epoll.add(entry->getFd(), EPOLLIN, tid);
@@ -123,7 +141,7 @@ namespace LiveProfilerTests {
 			auto inCount = std::count_if(events.cbegin(), events.cend(),
 				[](auto& e) { return (e.events & EPOLLIN) == EPOLLIN; });
 			assert(inCount == 1);
-			auto& records = entry->getRecords(1);
+			auto& records = entry->getRecords();
 			for (auto* record : records) {
 				if (record->type == PERF_RECORD_SAMPLE) {
 					auto* data = reinterpret_cast<const CpuSampleRawData*>(record);

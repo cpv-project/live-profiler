@@ -47,6 +47,8 @@ namespace LiveProfiler {
 			mmapTotalSize_ = 0;
 			mmapDataSize_ = 0;
 			mmapReadOffset_ = 0;
+			wakeupEvents_ = 0;
+			records_.clear();
 		}
 
 		/**
@@ -59,12 +61,14 @@ namespace LiveProfiler {
 		void setMmapAddress(
 			char* mmapStartAddress,
 			std::size_t mmapTotalSize,
-			std::size_t pageSize) {
+			std::size_t pageSize,
+			std::size_t wakeupEvents) {
 			mmapStartAddress_ = mmapStartAddress;
 			mmapDataAddress_ = mmapStartAddress + pageSize;
 			mmapTotalSize_ = mmapTotalSize;
 			mmapDataSize_ = mmapTotalSize - pageSize;
 			mmapReadOffset_ = 0;
+			wakeupEvents_ = wakeupEvents;
 		}
 
 		/** Get metadata struct from mapped memory */
@@ -74,22 +78,24 @@ namespace LiveProfiler {
 		}
 
 		/**
-		 * Fetch records from mapped memory based on latest read offset.
-		 * `maxRecords` should be less or equal to `attr.wakeup_events`.
+		 * Get records from mapped memory based on latest read offset.
+		 * Up to `attr.wakeup_events` records will be returned.
 		 * Please call `updateReadOffset` **AFTER** handle the records.
 		 */
-		const std::vector<::perf_event_header*>& getRecords(std::size_t maxRecords) & {
+		const std::vector<::perf_event_header*>& getRecords() & {
 			assert(mmapDataAddress_ != nullptr);
 			records_.clear();
 			auto readOffset = mmapReadOffset_;
-			for (std::size_t i = 0; i < maxRecords; ++i) {
+			// although wakeup_events counts only PERF_RECORD_SAMPLE record types,
+			// here will counts all record types for safe
+			for (std::size_t i = 0; i < wakeupEvents_; ++i) {
 				// please be careful about the calculation here
 				// there may not be enough size between [readOffset, mmapDataSize_)
 				if (readOffset + sizeof(::perf_event_header) > mmapDataSize_) {
 					break; // not enough size for header
 				}
 				auto* header = reinterpret_cast<::perf_event_header*>(mmapDataAddress_ + readOffset);
-				auto nextReadOffset = readOffset + sizeof(::perf_event_header) + header->size;
+				auto nextReadOffset = readOffset + header->size;
 				if (nextReadOffset > mmapDataSize_) {
 					break; // not enough size for this record
 				}
@@ -128,7 +134,9 @@ namespace LiveProfiler {
 			mmapDataAddress_(nullptr),
 			mmapTotalSize_(0),
 			mmapDataSize_(0),
-			mmapReadOffset_(0) { }
+			mmapReadOffset_(0),
+			wakeupEvents_(1),
+			records_() { }
 
 		/** Destructor */
 		~LinuxPerfEntry() {
@@ -144,6 +152,7 @@ namespace LiveProfiler {
 		std::size_t mmapTotalSize_;
 		std::size_t mmapDataSize_;
 		std::uint64_t mmapReadOffset_;
+		std::size_t wakeupEvents_;
 		std::vector<::perf_event_header*> records_;
 	};
 }

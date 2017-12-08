@@ -23,9 +23,10 @@ namespace LiveProfiler {
 	public:
 		/** Default parameters */
 		static const std::size_t DefaultMaxFreeResult = 1024;
-		static const std::size_t DefaultMmapPageCount = 4;
-		static const std::size_t DefaultSamplePeriod = 100000;
 		static const std::size_t DefaultMaxFreePerfEntry = 1024;
+		static const std::size_t DefaultSamplePeriod = 100000;
+		static const std::size_t DefaultMmapPageCount = 8;
+		static const std::size_t DefaultWakeupEvents = 8;
 
 		/** Reset the state to it's initial state */
 		void reset() override {
@@ -108,11 +109,20 @@ namespace LiveProfiler {
 			samplePeriod_ = samplePeriod;
 		}
 
-		/** Set how many pages for mmap ring buffer,
+		/**
+		 * Set how many pages for the mmap ring buffer,
 		 * this count is not contains metadata page, and should be power of 2.
 		 */
 		void setMmapPageCount(std::size_t mmapPageCount) {
 			mmapPageCount_ = mmapPageCount;
+		}
+
+		/**
+		 * Set the number of records required to raise event.
+		 * A larger value may improve performance but delay the collection.
+		 */
+		void setWakeupEvents(std::size_t wakeupEvents) {
+			wakeupEvents_ = wakeupEvents;
 		}
 
 		/** Set how often to update the list of processes */
@@ -144,6 +154,7 @@ namespace LiveProfiler {
 			perfEntryAllocator_(DefaultMaxFreePerfEntry),
 			samplePeriod_(DefaultSamplePeriod),
 			mmapPageCount_(DefaultMmapPageCount),
+			wakeupEvents_(DefaultWakeupEvents),
 			enabled_(false),
 			epoll_() { }
 
@@ -178,8 +189,13 @@ namespace LiveProfiler {
 			auto entry = perfEntryAllocator_.allocate();
 			entry->setPid(tid);
 			LinuxPerfUtils::monitorSample(
-				entry, samplePeriod_, mmapPageCount_,
-				PERF_SAMPLE_IP | PERF_SAMPLE_TID | PERF_SAMPLE_CALLCHAIN);
+				entry,
+				PERF_TYPE_SOFTWARE,
+				PERF_COUNT_SW_CPU_CLOCK,
+				samplePeriod_,
+				PERF_SAMPLE_IP | PERF_SAMPLE_TID | PERF_SAMPLE_CALLCHAIN,
+				mmapPageCount_,
+				wakeupEvents_);
 			// enable events if collecting
 			if (enabled_) {
 				LinuxPerfUtils::perfEventEnable(entry->getFd(), true);
@@ -203,7 +219,7 @@ namespace LiveProfiler {
 		/** Take samples for executing instruction (actually is the next instruction) */
 		void takeSamples(std::unique_ptr<LinuxPerfEntry>& entry) {
 			assert(entry != nullptr);
-			auto& records = entry->getRecords(1);
+			auto& records = entry->getRecords();
 			for (auto* record : records) {
 				// check if the record is sample
 				if (record->type != PERF_RECORD_SAMPLE) {
@@ -254,6 +270,7 @@ namespace LiveProfiler {
 
 		std::size_t samplePeriod_;
 		std::size_t mmapPageCount_;
+		std::size_t wakeupEvents_;
 		bool enabled_;
 
 		LinuxEpollDescriptor epoll_;
