@@ -19,7 +19,6 @@ namespace LiveProfiler {
 	 * - First, lookup address in /proc/$pid/maps, find the mapped file and offset
 	 * - Then, parse elf executable file and lookup the symbol name covers the offset
 	 * - TODO: lookup kernel symbols
-	 * - TODO: lookup libc symbols
 	 */
 	class CpuSampleLinuxSymbolResolveInterceptor : public BaseInterceptor<CpuSampleModel> {
 	public:

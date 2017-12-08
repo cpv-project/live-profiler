@@ -3,7 +3,10 @@
 #include <memory>
 
 namespace LiveProfiler {
-	/** Represent a symbol name in the executable file */
+	/**
+	 * Represent a symbol name in the executable file.
+	 * The originalName, demangleName and path should not be empty.
+	 */
 	class SymbolName {
 	public:
 		/** Getters and Setters **/

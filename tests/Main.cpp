@@ -1,5 +1,6 @@
-#include "./Cases/Profiler/TestProfiler.hpp"
 #include "./Cases/Collectors/TestCpuSampleLinuxCollector.hpp"
+#include "./Cases/Interceptors/TestCpuSampleLinuxSymbolResolveInterceptor.hpp"
+#include "./Cases/Profiler/TestProfiler.hpp"
 #include "./Cases/Utils/Allocators/TestFreeListAllocator.hpp"
 #include "./Cases/Utils/Allocators/TestSingletonAllocator.hpp"
 #include "./Cases/Utils/Containers/TestStackBuffer.hpp"
@@ -13,8 +14,9 @@
 
 namespace LiveProfilerTests {
 	void testAll() {
-		testProfiler();
 		testCpuSampleLinuxCollector();
+		testCpuSampleLinuxSymbolResolveInterceptor();
+		testProfiler();
 		testFreeListAllocator();
 		testSingletonAllocator();
 		testStackBuffer();
