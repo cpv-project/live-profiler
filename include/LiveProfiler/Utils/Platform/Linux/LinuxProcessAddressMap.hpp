@@ -3,6 +3,7 @@
 #include <string>
 #include <memory>
 #include "../../Allocators/SingletonAllocator.hpp"
+#include "../../StringUtils.hpp"
 #include "../../TypeConvertUtils.hpp"
 #include "LinuxExecutableSymbolResolver.hpp"
 
@@ -26,21 +27,17 @@ namespace LiveProfiler {
 			const std::string& line,
 			const std::shared_ptr<SingletonAllocator<std::string, std::string>>& pathAllocator) {
 			assert(pathAllocator != nullptr);
-			std::size_t startIndex = 0;
-			std::size_t endIndex = 0;
-			std::size_t partIndex = 0;
 			// reset members
 			startAddress_ = 0;
 			endAddress_ = 0;
 			fileOffset_ = 0;
 			path_.reset();
 			// split line with blank characters
-			static const char blankChars[] = " \t\n";
 			std::size_t successParts = 0;
-			while (startIndex < line.size()) {
-				auto index = line.find_first_of(blankChars, startIndex);
-				endIndex = (index == line.npos) ? line.size() : index;
-				if (partIndex == 0) {
+			StringUtils::split(line,
+				[this, &line, &successParts, &pathAllocator]
+				(auto startIndex, auto endIndex, auto count) {
+				if (count == 0) {
 					// address
 					auto middleIndex = line.find_first_of('-', startIndex);
 					unsigned long long startAddressL = 0;
@@ -54,7 +51,7 @@ namespace LiveProfiler {
 						endAddress_ = static_cast<std::uintptr_t>(endAddressL);
 						++successParts;
 					}
-				} else if (partIndex == 2) {
+				} else if (count == 2) {
 					// offset
 					unsigned long long offsetL = 0;
 					if (TypeConvertUtils::strToUnsignedLongLong(
@@ -62,19 +59,16 @@ namespace LiveProfiler {
 						fileOffset_ = static_cast<std::uintptr_t>(offsetL);
 						++successParts;
 					}
-				} else if (partIndex == 5) {
+				} else if (count == 5) {
 					// pathname
 					const char* pathPtr = line.c_str() + startIndex;
 					std::size_t pathSize = endIndex - startIndex;
 					path_ = pathAllocator->allocate(pathPtr, pathSize);
 					++successParts;
 				}
-				index = line.find_first_not_of(blankChars, endIndex);
-				startIndex = (index == line.npos) ? line.size() : index;
-				++partIndex;
-			}
+			});
 			// handle empty pathname
-			if (partIndex == 5 && successParts == 2) {
+			if (path_ == nullptr && successParts == 2) {
 				path_ = pathAllocator->allocate("", 0);
 				++successParts;
 			}

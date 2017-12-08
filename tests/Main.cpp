@@ -10,6 +10,7 @@
 #include "./Cases/Utils/Platform/Linux/TestLinuxProcessAddressLocator.hpp"
 #include "./Cases/Utils/Platform/Linux/TestLinuxProcessAddressMap.hpp"
 #include "./Cases/Utils/Platform/Linux/TestLinuxProcessUtils.hpp"
+#include "./Cases/Utils/TestStringUtils.hpp"
 #include "./Cases/Utils/TestTypeConvertUtils.hpp"
 
 namespace LiveProfilerTests {
@@ -26,6 +27,7 @@ namespace LiveProfilerTests {
 		testLinuxProcessAddressLocator();
 		testLinuxProcessAddressMap();
 		testLinuxProcessUtils();
+		testStringUtils();
 		testTypeConvertUtils();
 	}
 }

@@ -29,12 +29,16 @@ namespace LiveProfilerTests {
 			assert(*map.getPath() == "");
 		}
 		{
-			std::string line("08048000- r-xp        00000000 03:0c  64593 /usr/sbin/gpm");
+			std::string line("08048000-08056000 r-xp        00000000 03:0c  ");
 			LinuxProcessAddressMap map;
-			assert(!map.parseLine(line, pathAllocator));
+			assert(map.parseLine(line, pathAllocator));
+			assert(map.getStartAddress() == 0x8048000);
+			assert(map.getEndAddress() == 0x8056000);
+			assert(map.getFileOffset() == 0);
+			assert(*map.getPath() == "");
 		}
 		{
-			std::string line("08048000-08056000 r-xp        00000000 03:0c  ");
+			std::string line("08048000- r-xp        00000000 03:0c  64593 /usr/sbin/gpm");
 			LinuxProcessAddressMap map;
 			assert(!map.parseLine(line, pathAllocator));
 		}

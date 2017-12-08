@@ -9,6 +9,7 @@
 #include "../Utils/Allocators/FreeListAllocator.hpp"
 #include "../Utils/Allocators/SingletonAllocator.hpp"
 #include "../Utils/Platform/Linux/LinuxExecutableSymbolResolver.hpp"
+#include "../Utils/Platform/Linux/LinuxKernelSymbolResolver.hpp"
 #include "../Utils/Platform/Linux/LinuxProcessAddressLocator.hpp"
 #include "../Utils/Platform/Linux/LinuxProcessUtils.hpp"
 
@@ -18,7 +19,6 @@ namespace LiveProfiler {
 	 * How this interceptor resolve symbol name:
 	 * - First, lookup address in /proc/$pid/maps, find the mapped file and offset
 	 * - Then, parse elf executable file and lookup the symbol name covers the offset
-	 * - TODO: lookup kernel symbols
 	 */
 	class CpuSampleLinuxSymbolResolveInterceptor : public BaseInterceptor<CpuSampleModel> {
 	public:
@@ -72,17 +72,19 @@ namespace LiveProfiler {
 				if (pathAndOffset.first != nullptr) {
 					auto resolver = resolverAllocator_->allocate(std::move(pathAndOffset.first));
 					model->setSymbolName(resolver->resolve(pathAndOffset.second));
+				} else {
+					model->setSymbolName(kernelResolver_.resolve(ip));
 				}
 				auto& callChainIps = model->getCallChainIps();
 				auto& callChainSymbolNames = model->getCallChainSymbolNames();
 				for (std::size_t i = 0; i < callChainIps.size(); ++i) {
 					auto callChainIp = callChainIps[i];
 					pathAndOffset = addressLocatorIt->second->locate(callChainIp, false);
-					if (pathAndOffset.first == nullptr) {
-						callChainSymbolNames.at(i) = nullptr;
-					} else {
+					if (pathAndOffset.first != nullptr) {
 						auto resolver = resolverAllocator_->allocate(std::move(pathAndOffset.first));
 						callChainSymbolNames.at(i) = resolver->resolve(pathAndOffset.second);
+					} else {
+						callChainSymbolNames.at(i) = kernelResolver_.resolve(callChainIp);
 					}
 				}
 			}
@@ -94,6 +96,7 @@ namespace LiveProfiler {
 			addressLocatorAllocator_(DefaultMaxFreeAddressLocator),
 			pathAllocator_(std::make_shared<decltype(pathAllocator_)::element_type>()),
 			resolverAllocator_(std::make_shared<decltype(resolverAllocator_)::element_type>()),
+			kernelResolver_(),
 			pidToAddressLocatorSwept_(),
 			pidToAddressLocatorSweepInterval_(
 				std::chrono::milliseconds(DefaultPidToAddressLocatorSweepInterval)),
@@ -120,6 +123,7 @@ namespace LiveProfiler {
 		std::shared_ptr<SingletonAllocator<std::string, std::string>> pathAllocator_;
 		std::shared_ptr<SingletonAllocator<
 			std::shared_ptr<std::string>, LinuxExecutableSymbolResolver>> resolverAllocator_;
+		LinuxKernelSymbolResolver kernelResolver_;
 
 		std::chrono::high_resolution_clock::time_point pidToAddressLocatorSwept_;
 		std::chrono::high_resolution_clock::duration pidToAddressLocatorSweepInterval_;

@@ -18,13 +18,6 @@ namespace LiveProfiler {
 		/** Getters */
 		const std::shared_ptr<std::string>& getPath() const& { return path_; }
 
-		/** Constructor */
-		LinuxExecutableSymbolResolver(const std::shared_ptr<std::string>& path) :
-			path_(path),
-			symbolNames_() {
-			loadSymbolNames();
-		}
-
 		/** Resolve symbol name from offset, return nullptr if not found */
 		std::shared_ptr<SymbolName> resolve(std::size_t offset) {
 			// find first symbol that fileOffset > offset
@@ -49,6 +42,13 @@ namespace LiveProfiler {
 				}
 			}
 			return nullptr;
+		}
+
+		/** Constructor */
+		LinuxExecutableSymbolResolver(const std::shared_ptr<std::string>& path) :
+			path_(path),
+			symbolNames_() {
+			loadSymbolNames();
 		}
 
 	protected:
