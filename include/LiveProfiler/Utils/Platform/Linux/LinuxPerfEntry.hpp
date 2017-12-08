@@ -49,7 +49,13 @@ namespace LiveProfiler {
 			mmapReadOffset_ = 0;
 		}
 
-		/** Set the address from mmap on fd */
+		/**
+		 * Set the address from mmap on fd.
+		 * The address should be mapped with PROT_READ | PROT_WRITE.
+		 * Previously I was use PROT_READ only but realize that's wrong,
+		 * because the kernel can rewrite the data while it's be reading,
+		 * if the data have more than one field then it will lost integrity.
+		 */
 		void setMmapAddress(
 			char* mmapStartAddress,
 			std::size_t mmapTotalSize,
@@ -68,21 +74,49 @@ namespace LiveProfiler {
 		}
 
 		/**
-		 * Get data struct from mapped memory based on latest read offset.
-		 * You can access atmost `wakeup_events` elements from result.
-		 * Please call `updateReadOffset` before waiting for the next round.
+		 * Fetch records from mapped memory based on latest read offset.
+		 * `maxRecords` should be less or equal to `attr.wakeup_events`.
+		 * Please call `updateReadOffset` **AFTER** handle the records.
 		 */
-		template <class T>
-		const T* getData() const {
+		const std::vector<::perf_event_header*>& getRecords(std::size_t maxRecords) & {
 			assert(mmapDataAddress_ != nullptr);
-			// should not be sizeof(T) because some data isn't sample data
-			assert(mmapReadOffset_ + sizeof(::perf_event_header) <= mmapDataSize_);
-			return reinterpret_cast<T*>(mmapDataAddress_ + mmapReadOffset_);
+			records_.clear();
+			auto readOffset = mmapReadOffset_;
+			for (std::size_t i = 0; i < maxRecords; ++i) {
+				// please be careful about the calculation here
+				// there may not be enough size between [readOffset, mmapDataSize_)
+				if (readOffset + sizeof(::perf_event_header) > mmapDataSize_) {
+					break; // not enough size for header
+				}
+				auto* header = reinterpret_cast<::perf_event_header*>(mmapDataAddress_ + readOffset);
+				auto nextReadOffset = readOffset + sizeof(::perf_event_header) + header->size;
+				if (nextReadOffset > mmapDataSize_) {
+					break; // not enough size for this record
+				}
+				// add record
+				records_.emplace_back(header);
+				readOffset = nextReadOffset;
+			}
+			return records_;
 		}
 
-		/** Update read offset prepare for next round */
+		/* Update read offset prepare for next round */
 		void updateReadOffset() {
-			mmapReadOffset_ = getMetaPage()->data_head % mmapDataSize_;
+			// tell kernel data until data_head has been read
+			// --------- simulation --------
+			// initial state:
+			// [ head | tail | lastHead, writable, writable, writable, ... ]
+			// kernel wrote some data:
+			// [ tail | lastHead, non-writable, non-writable, head, writable, ... ]
+			// after getData and updateReadOffset:
+			// [ writable, writable, tail | lastHead | head, writable, ... ]
+			// kernal wrote some data:
+			// [ writable, writable, tail | lastHead, non-writable, head, writable, ... ]
+			// and so on...
+			auto* metaPage = reinterpret_cast<::perf_event_mmap_page*>(mmapStartAddress_);
+			auto lastHead = metaPage->data_head;
+			metaPage->data_tail = lastHead;
+			mmapReadOffset_ = lastHead % mmapDataSize_;
 		}
 
 		/** Constructor */
@@ -109,7 +143,8 @@ namespace LiveProfiler {
 		char* mmapDataAddress_;
 		std::size_t mmapTotalSize_;
 		std::size_t mmapDataSize_;
-		std::size_t mmapReadOffset_;
+		std::uint64_t mmapReadOffset_;
+		std::vector<::perf_event_header*> records_;
 	};
 }
 

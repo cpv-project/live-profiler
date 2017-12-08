@@ -123,13 +123,16 @@ namespace LiveProfilerTests {
 			auto inCount = std::count_if(events.cbegin(), events.cend(),
 				[](auto& e) { return (e.events & EPOLLIN) == EPOLLIN; });
 			assert(inCount == 1);
-			auto data = entry->getData<CpuSampleRawData>();
-			entry->updateReadOffset();
-			if (data->header.type == PERF_RECORD_SAMPLE) {
-				assert(data->ip != 0);
-				assert(data->pid == static_cast<std::uint32_t>(::getpid()));
-				assert(data->tid == static_cast<std::uint32_t>(tid));
+			auto& records = entry->getRecords(1);
+			for (auto* record : records) {
+				if (record->type == PERF_RECORD_SAMPLE) {
+					auto* data = reinterpret_cast<const CpuSampleRawData*>(record);
+					assert(data->ip != 0);
+					assert(data->pid == static_cast<std::uint32_t>(::getpid()));
+					assert(data->tid == static_cast<std::uint32_t>(tid));
+				}
 			}
+			entry->updateReadOffset();
 		}
 	}
 

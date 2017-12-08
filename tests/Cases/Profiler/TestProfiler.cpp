@@ -115,7 +115,7 @@ namespace LiveProfilerTests {
 
 		profiler.collectFor(std::chrono::milliseconds(20));
 		assert(!collector->enabled);
-		assert(analyzer->getResult() > analyzer->adjust);
+		assert(analyzer->getResult() > 0);
 		
 		profiler.reset();
 		assert(analyzer->adjust == 0);

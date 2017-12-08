@@ -67,7 +67,7 @@ namespace LiveProfilerTests {
 		});
 
 		for (std::size_t i = 0; i < 3; ++i) {
-			profiler.collectFor(std::chrono::milliseconds(300));
+			profiler.collectFor(std::chrono::milliseconds(100000));
 			std::cout << "---" << std::endl;
 		}
 		flag = false;
