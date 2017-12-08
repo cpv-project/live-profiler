@@ -40,10 +40,17 @@ namespace LiveProfilerTests {
 		assert(!filter(1));
 	}
 
+	void testLinuxProcessUtilsIsProcessExists() {
+		auto selfpid = ::getpid();
+		assert(LinuxProcessUtils::isProcessExists(selfpid));
+		assert(!LinuxProcessUtils::isProcessExists(0));
+	}
+
 	void testLinuxProcessUtils() {
 		std::cout << __func__ << std::endl;
 		testLinuxProcessUtilsListProcesses();
 		testLinuxProcessUtilsGetProcessFilterByName();
+		testLinuxProcessUtilsIsProcessExists();
 	}
 }
 

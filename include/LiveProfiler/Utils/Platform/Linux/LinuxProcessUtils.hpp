@@ -2,6 +2,7 @@
 #include <unistd.h>
 #include <dirent.h>
 #include <sys/types.h>
+#include <sys/stat.h>
 #include <cstdlib>
 #include <cstdio>
 #include <cstring>
@@ -122,6 +123,22 @@ namespace LiveProfiler {
 				}
 				return true;
 			};
+		}
+
+		/** Check if the process exists */
+		static bool isProcessExists(pid_t pid) {
+			static std::string prefix("/proc/");
+			StackBuffer<128> buf;
+			// build path /proc/$pid
+			buf.appendStr(prefix.data(), prefix.size());
+			buf.appendLongLong(pid);
+			buf.appendNullTerminator();
+			// check if the path exists
+			struct ::stat st;
+			if (::stat(buf.data(), &st) != 0) {
+				return false;
+			}
+			return S_ISDIR(st.st_mode);
 		}
 	};
 }

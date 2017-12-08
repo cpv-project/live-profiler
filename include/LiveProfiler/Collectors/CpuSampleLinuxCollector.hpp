@@ -26,7 +26,6 @@ namespace LiveProfiler {
 		static const std::size_t DefaultMmapPageCount = 4;
 		static const std::size_t DefaultSamplePeriod = 100000;
 		static const std::size_t DefaultMaxFreePerfEntry = 1024;
-		static const std::size_t DefaultMaxFreeAddressLocator = 1024;
 
 		/** Reset the state to it's initial state */
 		void reset() override {
@@ -146,11 +145,7 @@ namespace LiveProfiler {
 			samplePeriod_(DefaultSamplePeriod),
 			mmapPageCount_(DefaultMmapPageCount),
 			enabled_(false),
-			epoll_(),
-			pidToAddressLocator_(),
-			addressLocatorAllocator_(DefaultMaxFreeAddressLocator),
-			pathAllocator_(std::make_shared<decltype(pathAllocator_)::element_type>()),
-			resolverAllocator_(std::make_shared<decltype(resolverAllocator_)::element_type>()) { }
+			epoll_() { }
 
 	protected:
 		/** Update the threads to monitor based on `threads_` */
@@ -173,17 +168,6 @@ namespace LiveProfiler {
 					// thread no longer exist
 					unmonitorThread(std::move(it->second));
 					it = tidToPerfEntry_.erase(it);
-				}
-			}
-			// find out which processes no longer exist and clear pidToAddressLocator_
-			for (auto it = pidToAddressLocator_.begin(); it != pidToAddressLocator_.end();) {
-				pid_t pid = it->first;
-				if (std::binary_search(threads_.cbegin(), threads_.cend(), pid)) {
-					// process still exist
-					++it;
-				} else {
-					// process no longer exist
-					it = pidToAddressLocator_.erase(it);
 				}
 			}
 		}
@@ -231,45 +215,13 @@ namespace LiveProfiler {
 				result->setIp(data->ip);
 				result->setPid(data->pid);
 				result->setTid(data->tid);
-				// resolve symbol names
-				pid_t pid = data->pid;
-				auto addressLocatorIt = pidToAddressLocator_.find(pid);
-				if (addressLocatorIt == pidToAddressLocator_.end()) {
-					auto pair = pidToAddressLocator_.emplace(pid,
-						addressLocatorAllocator_.allocate(pid, pathAllocator_));
-					addressLocatorIt = pair.first;
-				}
-				auto pathAndOffset = addressLocatorIt->second->locate(data->ip, false);
-				if (pathAndOffset.first != nullptr) {
-					auto resolver = resolverAllocator_->allocate(std::move(pathAndOffset.first));
-					result->setSymbolName(resolver->resolve(pathAndOffset.second));
-				}
+				result->setSymbolName(nullptr);
 				auto& callChainIps = result->getCallChainIps();
 				auto& callChainSymbolNames = result->getCallChainSymbolNames();
 				for (std::size_t i = 0; i < data->nr; ++i) {
-					if (data->nr > 100) {
-						std::cout << data->header.type << " " << PERF_RECORD_SAMPLE << std::endl;
-						std::cout << data->header.size << " " << data->header.misc << std::endl;
-						std::cout << data->pid << " " << data->tid << std::endl;
-						std::cout << data->ip << std::endl;
-						std::cout << i << " " << data->nr << std::endl;
-						abort();
-					}
 					auto callChainIp = data->ips[i];
-					// TODO: resolve kernel call
-					// TODO: resolve libc call
-					// TODO: callchain is not backtrace
-					// if (callChainIp == data->ip) {
-					// 	continue; // don't record top ip (i = 1) and bottom ip
-					// }
 					callChainIps.emplace_back(callChainIp);
-					pathAndOffset = addressLocatorIt->second->locate(callChainIp, false);
-					if (pathAndOffset.first == nullptr) {
-						callChainSymbolNames.emplace_back(nullptr);
-					} else {
-						auto resolver = resolverAllocator_->allocate(std::move(pathAndOffset.first));
-						callChainSymbolNames.emplace_back(resolver->resolve(pathAndOffset.second));
-					}
+					callChainSymbolNames.emplace_back(nullptr);
 				}
 				// append model data
 				results_.emplace_back(std::move(result));
@@ -305,12 +257,6 @@ namespace LiveProfiler {
 		bool enabled_;
 
 		LinuxEpollDescriptor epoll_;
-
-		std::unordered_map<pid_t, std::unique_ptr<LinuxProcessAddressLocator>> pidToAddressLocator_;
-		FreeListAllocator<LinuxProcessAddressLocator> addressLocatorAllocator_;
-		std::shared_ptr<SingletonAllocator<std::string, std::string>> pathAllocator_;
-		std::shared_ptr<SingletonAllocator<
-			std::shared_ptr<std::string>, LinuxExecutableSymbolResolver>> resolverAllocator_;
 	};
 }
 

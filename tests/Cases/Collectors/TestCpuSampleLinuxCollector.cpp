@@ -3,6 +3,7 @@
 #include <thread>
 #include <LiveProfiler/Profiler/Profiler.hpp>
 #include <LiveProfiler/Collectors/CpuSampleLinuxCollector.hpp>
+#include <LiveProfiler/Interceptors/CpuSampleLinuxSymbolResolveInterceptor.hpp>
 
 namespace LiveProfilerTests {
 	using namespace LiveProfiler;
@@ -53,7 +54,8 @@ namespace LiveProfilerTests {
 	void testCpuSampleLinuxCollectorWithSelfProcess() {
 		Profiler<CpuSampleModel> profiler;
 		auto collector = profiler.useCollector<CpuSampleLinuxCollector>();
-		auto analyzer = profiler.addAnalyzer<TestAnalyzer>();
+		// auto analyzer = profiler.addAnalyzer<TestAnalyzer>();
+		auto interceptor = profiler.addInterceptor<CpuSampleLinuxSymbolResolveInterceptor>();
 		collector->filterProcessByName("LiveProfilerTest");
 
 		std::atomic_bool flag(true);
@@ -67,7 +69,7 @@ namespace LiveProfilerTests {
 		});
 
 		for (std::size_t i = 0; i < 3; ++i) {
-			profiler.collectFor(std::chrono::milliseconds(100000));
+			profiler.collectFor(std::chrono::milliseconds(3000));
 			std::cout << "---" << std::endl;
 		}
 		flag = false;
