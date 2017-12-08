@@ -64,8 +64,9 @@ namespace LiveProfiler {
 					lastAddressLocatorIterator_ = addressLocatorIt;
 				}
 				// resolve symbol names
+				// address should be ip-1 because ip is the next instruction of the executing instruction
 				auto ip = model->getIp();
-				auto pathAndOffset = addressLocatorIt->second->locate(ip, false);
+				auto pathAndOffset = addressLocatorIt->second->locate(ip-1, false);
 				if (pathAndOffset.first != nullptr) {
 					auto resolver = resolverAllocator_->allocate(std::move(pathAndOffset.first));
 					model->setSymbolName(resolver->resolve(pathAndOffset.second));
@@ -74,7 +75,7 @@ namespace LiveProfiler {
 				auto& callChainSymbolNames = model->getCallChainSymbolNames();
 				for (std::size_t i = 0; i < callChainIps.size(); ++i) {
 					auto callChainIp = callChainIps[i];
-					pathAndOffset = addressLocatorIt->second->locate(callChainIp, false);
+					pathAndOffset = addressLocatorIt->second->locate(callChainIp-1, false);
 					if (pathAndOffset.first == nullptr) {
 						callChainSymbolNames.at(i) = nullptr;
 					} else {
