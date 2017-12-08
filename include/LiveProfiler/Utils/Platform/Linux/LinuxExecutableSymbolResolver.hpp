@@ -75,25 +75,34 @@ namespace LiveProfiler {
 				return;
 			}
 			// load symbols
-			void* miniSymbols = nullptr;
-			unsigned int miniSymbolSize = 0;
-			std::size_t miniSymbolCount = bfd_read_minisymbols(
-				file, false, &miniSymbols, &miniSymbolSize);
-			std::unique_ptr<void, void(*)(void*)> miniSymbolsPtr(miniSymbols, ::free);
-			if (miniSymbolCount == 0 ||  miniSymbols == nullptr) {
-				return;
-			}
-			// load symbol sizes and append to symbolNames_
-			bfd_byte* miniSymbolsFrom = reinterpret_cast<bfd_byte*>(miniSymbols);
-			bfd_byte* miniSymbolsTo = miniSymbolsFrom + miniSymbolSize * miniSymbolCount;
-			asymbol* symbolStore = bfd_make_empty_symbol(file);
-			std::vector<asymbol*> symbols;
-			for (; miniSymbolsFrom < miniSymbolsTo; miniSymbolsFrom += miniSymbolSize) {
-				asymbol* symbol = bfd_minisymbol_to_symbol(file, false, miniSymbolsFrom, symbolStore);
-				if (symbol != nullptr) {
+			static auto load = [](::bfd* file, std::vector<asymbol*>& symbols, bool dynamic) {
+				void* miniSymbols = nullptr;
+				unsigned int miniSymbolSize = 0;
+				std::size_t miniSymbolCount = bfd_read_minisymbols(
+					file, dynamic, &miniSymbols, &miniSymbolSize);
+				std::unique_ptr<void, void(*)(void*)> miniSymbolsPtr(miniSymbols, ::free);
+				if (miniSymbolCount == 0 ||  miniSymbols == nullptr) {
+					return miniSymbolsPtr;
+				}
+				bfd_byte* miniSymbolsFrom = reinterpret_cast<bfd_byte*>(miniSymbols);
+				bfd_byte* miniSymbolsTo = miniSymbolsFrom + miniSymbolSize * miniSymbolCount;
+				asymbol* symbolStore = bfd_make_empty_symbol(file);
+				for (; miniSymbolsFrom < miniSymbolsTo; miniSymbolsFrom += miniSymbolSize) {
+					asymbol* symbol = bfd_minisymbol_to_symbol(
+						file, dynamic, miniSymbolsFrom, symbolStore);
+					// see filter_symbols in nm.c in binutils
+					if (symbol == nullptr ||
+						(symbol->flags & (BSF_SECTION_SYM | BSF_DEBUGGING)) != 0) {
+						continue;
+					}
 					symbols.emplace_back(symbol);
 				}
-			}
+				return miniSymbolsPtr;
+			};
+			std::vector<asymbol*> symbols;
+			auto normalMiniSymbolsPtr = load(file, symbols, false);
+			auto dynamicMiniSymbolsPtr = load(file, symbols, true);
+			// load symbol sizes and append to symbolNames_
 			std::sort(symbols.begin(), symbols.end(), [](const auto& a, const auto& b) {
 				// sort by symbol value, then by section vma
 				// see `size_forward1` in nm.c in binutils
@@ -147,7 +156,7 @@ namespace LiveProfiler {
 				// append to symbolNames_
 				auto symbolName = std::make_shared<SymbolName>();
 				symbolName->setOriginalName(originalName);
-				symbolName->setDemangleName((demangleName != nullptr) ? demangleName : "");
+				symbolName->setDemangleName((demangleName != nullptr) ? demangleName : originalName);
 				symbolName->setPath(path_);
 				symbolName->setFileOffset(bfd_asymbol_value(symbol));
 				symbolName->setSymbolSize(size);

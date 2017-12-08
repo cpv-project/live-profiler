@@ -16,7 +16,8 @@ namespace LiveProfilerTests {
 				for (const auto& model : models) {
 					auto& symbolName = model->getSymbolName();
 					if (symbolName != nullptr) {
-						std::cout << "symbol name: " << symbolName->getDemangleName() << std::endl;
+						std::cout << "symbol name: " << symbolName->getDemangleName() <<
+							" (" << std::hex << model->getIp() << std::dec << ")" << std::endl;
 					} else {
 						std::cout << "no symbol name: " << std::hex << model->getIp() << std::dec << std::endl;
 					}
@@ -26,7 +27,8 @@ namespace LiveProfilerTests {
 						auto ip = callChainIps.at(i);
 						auto& callChainSymbolName = callChainSymbolNames.at(i);
 						if (callChainSymbolName != nullptr) {
-							std::cout << "\tsymbol name: " << callChainSymbolName->getDemangleName() << std::endl;
+							std::cout << "\tsymbol name: " << callChainSymbolName->getDemangleName() <<
+								" (" << std::hex << model->getIp() << std::dec << ")" << std::endl;
 						} else {
 							std::cout << "\tno symbol name: " << std::hex << ip << std::dec << std::endl;
 						}
@@ -37,7 +39,7 @@ namespace LiveProfilerTests {
 
 		__attribute__((noinline))
 		static void increaseA(std::atomic_int& n) {
-			++n;
+			n = n + ::getpid() + ::getuid();
 		}
 
 		__attribute__((noinline))
@@ -69,14 +71,14 @@ namespace LiveProfilerTests {
 		});
 
 		for (std::size_t i = 0; i < 3; ++i) {
-			profiler.collectFor(std::chrono::milliseconds(3000));
+			profiler.collectFor(std::chrono::milliseconds(30000));
 			std::cout << "---" << std::endl;
 		}
 		flag = false;
 		t.join();
 
 		// TODO
-		// std::this_thread::sleep_for(std::chrono::seconds(1000));
+		// std::this_thread::sleep_for(std::chrono::seconds(1000000));
 	}
 
 	void testCpuSampleLinuxCollector() {
