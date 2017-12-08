@@ -75,8 +75,8 @@ namespace LiveProfiler {
 				});
 				if (startAddress != 0 && !functionName.empty()) {
 					auto symbolName = std::make_shared<SymbolName>();
-					symbolName->setOriginalName(functionName);
-					symbolName->setDemangleName(std::move(functionName));
+					symbolName->setOriginalName(std::move(functionName));
+					symbolName->setDemangleName("");
 					symbolName->setPath(path_);
 					static_assert(
 						std::numeric_limits<std::uintptr_t>::max() ==

@@ -21,7 +21,7 @@ namespace LiveProfilerTests {
 		auto symbolName = resolver.resolve(pathAndOffset.second);
 		assert(symbolName != nullptr);
 		assert(symbolName->getOriginalName().find(__func__) != std::string::npos);
-		assert(symbolName->getDemangleName().find(__func__) != std::string::npos);
+		assert(symbolName->getName().find(__func__) != std::string::npos);
 		assert(symbolName->getPath() == pathAndOffset.first);
 		assert(symbolName->getFileOffset() > 0);
 		assert(symbolName->getSymbolSize() > 0);

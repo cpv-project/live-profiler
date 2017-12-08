@@ -156,7 +156,11 @@ namespace LiveProfiler {
 				// append to symbolNames_
 				auto symbolName = std::make_shared<SymbolName>();
 				symbolName->setOriginalName(originalName);
-				symbolName->setDemangleName((demangleName != nullptr) ? demangleName : originalName);
+				if (demangleName != nullptr && symbolName->getOriginalName() != demangleName) {
+					symbolName->setDemangleName(demangleName);
+				} else {
+					symbolName->setDemangleName("");
+				}
 				symbolName->setPath(path_);
 				symbolName->setFileOffset(bfd_asymbol_value(symbol));
 				symbolName->setSymbolSize(size);

@@ -40,11 +40,11 @@ namespace LiveProfilerTests {
 				assert(symbolNameA != nullptr);
 				assert(symbolNameB != nullptr);
 				assert(callChainSymbolNameA != nullptr);
-				assert(symbolNameA->getDemangleName().find(
+				assert(symbolNameA->getName().find(
 					"testCpuSampleLinuxSymbolResolveInterceptorReset") != std::string::npos);
-				assert(symbolNameB->getDemangleName().find(
+				assert(symbolNameB->getName().find(
 					"testCpuSampleLinuxSymbolResolveInterceptorAlter") != std::string::npos);
-				assert(callChainSymbolNameA->getDemangleName().find(
+				assert(callChainSymbolNameA->getName().find(
 					"testCpuSampleLinuxSymbolResolveInterceptorReset") != std::string::npos);
 			}
 		}

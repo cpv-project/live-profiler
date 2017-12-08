@@ -5,7 +5,7 @@
 namespace LiveProfiler {
 	/**
 	 * Represent a symbol name in the executable file.
-	 * The originalName, demangleName and path should not be empty.
+	 * The originalName and path should not be empty, the demangleName can be empty.
 	 */
 	class SymbolName {
 	public:
@@ -20,6 +20,11 @@ namespace LiveProfiler {
 		void setPath(const std::shared_ptr<std::string>& path) { path_ = path; }
 		void setFileOffset(std::size_t offset) { fileOffset_ = offset; }
 		void setSymbolSize(std::size_t size) { symbolSize_ = size; }
+
+		/** Return either the demangle name or the orignal name */
+		const std::string& getName() const& {
+			return demangleName_.empty() ? originalName_ : demangleName_;
+		}
 
 		/** Constructor */
 		SymbolName() :

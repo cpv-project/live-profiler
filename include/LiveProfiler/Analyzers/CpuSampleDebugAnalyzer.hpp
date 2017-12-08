@@ -16,7 +16,7 @@ namespace LiveProfiler {
 				auto& symbolName = model->getSymbolName();
 				std::cout << "[CpuSample] - " << std::hex << model->getIp() << std::dec << std::endl;
 				if (symbolName != nullptr) {
-					std::cout << "[CpuSample]   > " << symbolName->getDemangleName() << std::endl;
+					std::cout << "[CpuSample]   > " << symbolName->getName() << std::endl;
 					std::cout << "[CpuSample]   > " << *symbolName->getPath() << std::endl;
 				}
 				auto& callChainIps = model->getCallChainIps();
@@ -27,7 +27,7 @@ namespace LiveProfiler {
 					std::cout << "[CpuSample]   - " << std::hex << ip << std::dec << std::endl;
 					if (callChainSymbolName != nullptr) {
 						std::cout << "[CpuSample]     > " <<
-							callChainSymbolName->getDemangleName() << std::endl;
+							callChainSymbolName->getName() << std::endl;
 						std::cout << "[CpuSample]     > " << *callChainSymbolName->getPath() << std::endl;
 					}
 				}

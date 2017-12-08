@@ -17,8 +17,8 @@ namespace LiveProfiler {
 	/**
 	 * Interceptor used to setup symbol names in model data.
 	 * How this interceptor resolve symbol name:
-	 * - First, lookup address in /proc/$pid/maps, find the mapped file and offset
-	 * - Then, parse elf executable file and lookup the symbol name covers the offset
+	 * - First, use LinuxProcessAddressLocator and LinuxExecutableSymbolResolver
+	 * - Then, use LinuxKernelSymbolResolver
 	 */
 	class CpuSampleLinuxSymbolResolveInterceptor : public BaseInterceptor<CpuSampleModel> {
 	public:
