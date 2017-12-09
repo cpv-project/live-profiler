@@ -19,7 +19,7 @@ namespace LiveProfiler {
 
 		/**
 		 * Line format:
-		 * address           permissions offset   device inode pathname
+		 * address           permissions offset   device inode pathname(optional)
 		 * 08048000-08056000 r-xp        00000000 03:0c  64593 /usr/sbin/gpm
 		 * Return whether the parse is successful.
 		 */

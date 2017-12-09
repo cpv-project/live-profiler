@@ -52,7 +52,11 @@ namespace LiveProfiler {
 		}
 
 	protected:
-		/** Load symbol names from /proc/kallsyms */
+		/**
+		 * Line format:
+		 * address          type name           module(optional)
+		 * ffffffffc012340d t    cleanup_module [pata_acpi]
+		 */
 		void loadSymbolNames() {
 			// parse file
 			std::ifstream file("/proc/kallsyms");
