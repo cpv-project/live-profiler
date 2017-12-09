@@ -4,6 +4,9 @@
 namespace LiveProfiler {
 	/**
 	 * Collector for collecting cpu samples on linux, based on perf_events
+	 *
+	 * Q: Why callchain is incomplete for my program?
+	 * A: Backtrace is based on frame pointer, please compile with -fno-omit-frame-pointer option.
 	 */
 	class CpuSampleLinuxCollector : public BasePerfLinuxCollector<CpuSampleModel> {
 	public:
