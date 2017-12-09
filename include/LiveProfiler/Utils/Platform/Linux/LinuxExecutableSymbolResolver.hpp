@@ -77,9 +77,9 @@ namespace LiveProfiler {
 				if (programHeader.p_type == PT_LOAD) {
 					// found LOAD entry
 					loadEntries_.emplace_back(LoadEntry({
-						programHeader.p_offset,
-						programHeader.p_vaddr,
-						programHeader.p_vaddr + programHeader.p_memsz
+						static_cast<std::size_t>(programHeader.p_offset),
+						static_cast<std::size_t>(programHeader.p_vaddr),
+						static_cast<std::size_t>(programHeader.p_vaddr + programHeader.p_memsz)
 					}));
 				}
 			}

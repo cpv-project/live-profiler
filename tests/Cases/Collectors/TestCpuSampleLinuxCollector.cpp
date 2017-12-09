@@ -59,7 +59,7 @@ namespace LiveProfilerTests {
 		t.join();
 
 		// TODO
-		std::this_thread::sleep_for(std::chrono::seconds(1000000));
+		// std::this_thread::sleep_for(std::chrono::seconds(1000000));
 	}
 
 	void testCpuSampleLinuxCollector() {
