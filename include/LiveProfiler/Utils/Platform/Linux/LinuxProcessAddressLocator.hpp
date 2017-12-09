@@ -23,7 +23,7 @@ namespace LiveProfiler {
 	class LinuxProcessAddressLocator {
 	public:
 		/** Default parameters */
-		static const std::size_t DefaultMapsUpdateMinInterval = 1;
+		static const std::size_t DefaultMapsUpdateMinInterval = 100;
 
 		/**
 		 * Locate file path and offset for the specified address.
@@ -103,7 +103,8 @@ namespace LiveProfiler {
 			pathAllocator_(nullptr),
 			maps_(),
 			mapsUpdated_(),
-			mapsUpdateMinInterval_(std::chrono::milliseconds(+DefaultMapsUpdateMinInterval)),
+			mapsUpdateMinInterval_(
+				std::chrono::milliseconds(+DefaultMapsUpdateMinInterval)),
 			mapsPathBuffer_(),
 			line_() { }
 

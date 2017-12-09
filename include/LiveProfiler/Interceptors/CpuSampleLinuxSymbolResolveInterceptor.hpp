@@ -11,6 +11,7 @@
 #include "../Utils/Platform/Linux/LinuxExecutableSymbolResolver.hpp"
 #include "../Utils/Platform/Linux/LinuxKernelSymbolResolver.hpp"
 #include "../Utils/Platform/Linux/LinuxProcessAddressLocator.hpp"
+#include "../Utils/Platform/Linux/LinuxProcessCustomSymbolResolver.hpp"
 #include "../Utils/Platform/Linux/LinuxProcessUtils.hpp"
 
 namespace LiveProfiler {
@@ -19,6 +20,7 @@ namespace LiveProfiler {
 	 * How this interceptor resolve symbol name:
 	 * - First, use LinuxProcessAddressLocator and LinuxExecutableSymbolResolver
 	 * - Then, use LinuxKernelSymbolResolver
+	 * - Last, use LinuxProcessCustomSymbolResolver
 	 */
 	class CpuSampleLinuxSymbolResolveInterceptor : public BaseInterceptor<CpuSampleModel> {
 	public:

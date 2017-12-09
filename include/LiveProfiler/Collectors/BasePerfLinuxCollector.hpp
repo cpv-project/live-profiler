@@ -56,7 +56,7 @@ namespace LiveProfiler {
 		}
 
 		/** Collect performance data for the specified timeout period */
-		std::vector<std::unique_ptr<CpuSampleModel>>& collect(
+		std::vector<std::unique_ptr<Model>>& collect(
 			std::chrono::high_resolution_clock::duration timeout) & override {
 			// update the threads to monitor every specified interval
 			auto now = std::chrono::high_resolution_clock::now();

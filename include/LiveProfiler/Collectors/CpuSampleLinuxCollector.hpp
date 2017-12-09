@@ -1,5 +1,6 @@
 #pragma once
 #include "BasePerfLinuxCollector.hpp"
+#include "../Models/CpuSampleModel.hpp"
 
 namespace LiveProfiler {
 	/**
