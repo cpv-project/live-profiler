@@ -7,6 +7,19 @@ namespace LiveProfiler {
 	 */
 	class CpuSampleLinuxCollector : public BasePerfLinuxCollector<CpuSampleModel> {
 	public:
+		/**
+		 * Set whether to include callchain in samples.
+		 * Exclude callchain in samples will improve performance.
+		 * Default value is true.
+		 */
+		void setIncludeCallChain(bool includeCallChain) {
+			if (includeCallChain) {
+				sampleType_ |= PERF_SAMPLE_CALLCHAIN;
+			} else {
+				sampleType_ &= ~PERF_SAMPLE_CALLCHAIN;
+			}
+		}
+
 		/** Constructor */
 		CpuSampleLinuxCollector() : BasePerfLinuxCollector(
 			PERF_TYPE_SOFTWARE,
@@ -32,10 +45,14 @@ namespace LiveProfiler {
 				result->setSymbolName(nullptr);
 				auto& callChainIps = result->getCallChainIps();
 				auto& callChainSymbolNames = result->getCallChainSymbolNames();
-				for (std::size_t i = 0; i < data->nr; ++i) {
-					auto callChainIp = data->ips[i];
-					callChainIps.emplace_back(callChainIp);
-					callChainSymbolNames.emplace_back(nullptr);
+				if (data->header.size >= sizeof(CpuSampleRawDataWithCallChain)) {
+					auto* dataWithCallChain = (
+						reinterpret_cast<const CpuSampleRawDataWithCallChain*>(data));
+					for (std::size_t i = 0; i < dataWithCallChain->nr; ++i) {
+						auto callChainIp = dataWithCallChain->ips[i];
+						callChainIps.emplace_back(callChainIp);
+						callChainSymbolNames.emplace_back(nullptr);
+					}
 				}
 				// append model data
 				results_.emplace_back(std::move(result));
@@ -50,6 +67,11 @@ namespace LiveProfiler {
 			std::uint64_t ip;
 			std::uint32_t pid;
 			std::uint32_t tid;
+		};
+
+		/** See man perf_events, section PERF_RECORD_SAMPLE */
+		struct CpuSampleRawDataWithCallChain {
+			CpuSampleRawData data;
 			std::uint64_t nr;
 			std::uint64_t ips[];
 		};
