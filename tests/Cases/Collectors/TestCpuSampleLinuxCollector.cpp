@@ -37,7 +37,8 @@ namespace LiveProfilerTests {
 		auto collector = profiler.useCollector<CpuSampleLinuxCollector>();
 		auto analyzer = profiler.addAnalyzer<CpuSampleDebugAnalyzer>();
 		auto interceptor = profiler.addInterceptor<CpuSampleLinuxSymbolResolveInterceptor>();
-		collector->filterProcessByName("LiveProfilerTest");
+		// collector->filterProcessByName("LiveProfilerTest");
+		collector->filterProcessByName("a.out");
 
 		std::atomic_bool flag(true);
 		std::atomic_int n(0);

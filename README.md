@@ -70,10 +70,6 @@ C++ compiler support at least c++14
 
 TODO
 
-# Examples
-
-TODO
-
 # Coding Standards
 
 You should follow the rules below if you want to contribute.

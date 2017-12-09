@@ -6,3 +6,4 @@ cd Build
 cmake ../ && \
 make && \
 ./LiveProfilerTest
+
