@@ -13,9 +13,10 @@
 
 namespace LiveProfiler {
 	/**
-	 * Class used to find out address is mapped to which file for specificed linux process
-	 * The maps is read from /proc/$pid/maps,
-	 * because maps may change continuously it needs reload under certain conditions.
+	 * Class used to find out address is mapped to which file for specificed linux process.
+	 * The maps is reading from /proc/$pid/maps.
+	 * 
+	 * Because maps may change continuously, it needs to reload under certain conditions.
 	 * And because I want to avoid frequent reload so locate a newly mapped address may fail,
 	 * unless `forceReload` option is used.
 	 */
