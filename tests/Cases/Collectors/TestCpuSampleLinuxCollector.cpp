@@ -11,55 +11,47 @@ namespace LiveProfilerTests {
 
 	namespace {
 		class TestAnalyzer : public BaseAnalyzer<CpuSampleModel> {
-			void reset() override {};
+		public:
+			void reset() override { sampleCount_ = 0;};
 			void feed(const std::vector<std::unique_ptr<CpuSampleModel>>& models) override {
+				for (auto& model : models) {
+					assert(model->getPid() == static_cast<std::uint64_t>(::getpid()));
+					assert(model->getTid() != 0);
+					assert(model->getIp() != 0);
+					assert(model->getCallChainIps().size() == model->getCallChainSymbolNames().size());
+				}
+				sampleCount_ += models.size();
 			}
+			std::size_t getReport() const { return sampleCount_; }
+
+		protected:
+			std::size_t sampleCount_ = 0;
 		};
-
-		__attribute__((noinline))
-		static void increaseA(std::atomic_int& n) {
-			n = n + ::getpid() + ::getuid();
-		}
-
-		__attribute__((noinline))
-		static void increaseB(std::atomic_int& n) {
-			increaseA(n);
-		}
-
-		__attribute__((noinline))
-		static void increaseC(std::atomic_int& n) {
-			increaseB(n);
-		}
 	}
 
 	void testCpuSampleLinuxCollectorWithSelfProcess() {
 		Profiler<CpuSampleModel> profiler;
 		auto collector = profiler.useCollector<CpuSampleLinuxCollector>();
-		auto analyzer = profiler.addAnalyzer<CpuSampleDebugAnalyzer>();
+		auto analyzer = profiler.addAnalyzer<TestAnalyzer>();
 		auto interceptor = profiler.addInterceptor<CpuSampleLinuxSymbolResolveInterceptor>();
-		collector->setExcludeKernel(false);
 		collector->filterProcessByName("LiveProfilerTest");
-		// collector->filterProcessByName("a.out");
 
 		std::atomic_bool flag(true);
 		std::atomic_int n(0);
 		std::thread t([&flag, &n] {
 			while (flag) {
-				increaseC(n);
-				increaseC(n);
-				increaseC(n);
+				++n;
+				++n;
+				++n;
 			}
 		});
 
 		for (std::size_t i = 0; i < 3; ++i) {
-			profiler.collectFor(std::chrono::milliseconds(3000));
-			std::cout << "---" << std::endl;
+			profiler.collectFor(std::chrono::milliseconds(100));
 		}
 		flag = false;
 		t.join();
-
-		// TODO
-		// std::this_thread::sleep_for(std::chrono::seconds(1000000));
+		assert(analyzer->getReport() > 0);
 	}
 
 	void testCpuSampleLinuxCollector() {
