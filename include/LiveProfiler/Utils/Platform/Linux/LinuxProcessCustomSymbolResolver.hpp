@@ -62,7 +62,7 @@ namespace LiveProfiler {
 		 * Resolve custom symbol name from address.
 		 * Return nullptr if no symbol name is found, no retry.
 		 */
-		std::shared_ptr<SymbolName> tryResolve(std::size_t address) {
+		std::shared_ptr<SymbolName> tryResolve(std::size_t address) const {
 			// fast check
 			if (symbolNames_.empty()) {
 				return nullptr;

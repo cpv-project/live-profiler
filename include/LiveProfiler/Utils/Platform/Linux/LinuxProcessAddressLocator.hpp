@@ -18,35 +18,89 @@ namespace LiveProfiler {
 	 * 
 	 * Because maps may change continuously, it needs to reload under certain conditions.
 	 * And because I want to avoid frequent reload so locate a newly mapped address may fail,
-	 * unless `forceReload` option is used.
+	 * use `forceReload` can make it always reload.
 	 */
 	class LinuxProcessAddressLocator {
 	public:
 		/** Default parameters */
 		static const std::size_t DefaultMapsUpdateMinInterval = 100;
 
+		/** For FreeListAllocator */
+		void freeResources() {
+			pathAllocator_ = nullptr;
+			maps_.clear();
+		}
+
+		/** For FreeListAllocator */
+		void reset(
+			pid_t pid,
+			const std::shared_ptr<SingletonAllocator<std::string, std::string>>& pathAllocator) {
+			assert(pathAllocator != nullptr);
+			pid_ = pid;
+			pathAllocator_ = pathAllocator;
+			maps_.clear();
+			mapsUpdated_ = {};
+			mapsPathBuffer_.clear();
+			line_.clear();
+		}
+
 		/**
 		 * Locate file path and offset for the specified address.
 		 * Return (nullptr, 0) if locate failed.
-		 * When `forceReload` option is true, maps will be force to reload after first locate is failed,
+		 * When `forceReload` option is true,
+		 * maps will be forced to reload after first locate is failed,
 		 * it can ensure no newly mapped address is missed but may reduce performance.
 		 */
 		std::pair<std::shared_ptr<std::string>, std::ptrdiff_t> locate(
 			std::uintptr_t address, bool forceReload) {
-			for (std::size_t i = 0; i < 2; ++i) {
-				auto it = locateMap(address);
-				if (it != maps_.cend()) {
-					auto offset = address - it->getStartAddress() + it->getFileOffset();
-					return { it->getPath(), offset };
-				}
-				if (i == 0) {
-					// first locate failed
-					auto now = std::chrono::high_resolution_clock::now();
-					if (forceReload || now - mapsUpdated_ > mapsUpdateMinInterval_) {
-						reload();
-						mapsUpdated_ = now;
-					}
-				}
+			// first try
+			auto result = tryLocate(address);
+			if (result.first != nullptr) {
+				return result;
+			}
+			// reload maps from file, prevent frequent reloading
+			auto now = std::chrono::high_resolution_clock::now();
+			if (forceReload || now - mapsUpdated_ > mapsUpdateMinInterval_) {
+				reload();
+				mapsUpdated_ = now;
+			}
+			// second try
+			result = tryLocate(address);
+			return result;
+		}
+
+		/** Constructor */
+		LinuxProcessAddressLocator() :
+			pid_(0),
+			pathAllocator_(nullptr),
+			maps_(),
+			mapsUpdated_(),
+			mapsUpdateMinInterval_(
+				std::chrono::milliseconds(+DefaultMapsUpdateMinInterval)),
+			mapsPathBuffer_(),
+			line_() { }
+
+	protected:
+		/**
+		 * Locate file path and offset for the specified address.
+		 * Return (nullptr, 0) if locate failed, no retry.
+		 */
+		std::pair<std::shared_ptr<std::string>, std::ptrdiff_t> tryLocate(std::uintptr_t address) const {
+			// find first map that startAddress > address
+			auto it = std::upper_bound(
+				maps_.cbegin(), maps_.cend(), address,
+				[](const auto& a, const auto& b) {
+					return a < b.getStartAddress();
+				});
+			// get the previous map
+			if (it == maps_.cbegin()) {
+				return { nullptr, 0 };
+			}
+			--it;
+			// check is address >= startAddress and address < endAddress
+			if (address < it->getEndAddress()) {
+				auto offset = address - it->getStartAddress() + it->getFileOffset();
+				return { it->getPath(), offset };
 			}
 			return { nullptr, 0 };
 		}
@@ -76,54 +130,6 @@ namespace LiveProfiler {
 				[](const auto& a, const auto& b) {
 					return a.getStartAddress() < b.getStartAddress();
 				});
-		}
-
-		/** For FreeListAllocator */
-		void freeResources() {
-			pathAllocator_ = nullptr;
-			maps_.clear();
-		}
-
-		/** For FreeListAllocator */
-		void reset(
-			pid_t pid,
-			const std::shared_ptr<SingletonAllocator<std::string, std::string>>& pathAllocator) {
-			assert(pathAllocator != nullptr);
-			pid_ = pid;
-			pathAllocator_ = pathAllocator;
-			maps_.clear();
-			mapsUpdated_ = {};
-			mapsPathBuffer_.clear();
-			line_.clear();
-		}
-
-		/** Constructor */
-		LinuxProcessAddressLocator() :
-			pid_(0),
-			pathAllocator_(nullptr),
-			maps_(),
-			mapsUpdated_(),
-			mapsUpdateMinInterval_(
-				std::chrono::milliseconds(+DefaultMapsUpdateMinInterval)),
-			mapsPathBuffer_(),
-			line_() { }
-
-	protected:
-		/** Find map iterator for specified address, return maps_.cend() if not found */
-		std::vector<LinuxProcessAddressMap>::const_iterator locateMap(std::uintptr_t address) const {
-			// find first map that startAddress > address
-			auto it = std::upper_bound(
-				maps_.cbegin(), maps_.cend(), address,
-				[](const auto& a, const auto& b) {
-					return a < b.getStartAddress();
-				});
-			// get the previous map
-			if (it == maps_.cbegin()) {
-				return maps_.cend();
-			}
-			--it;
-			// check is address >= startAddress and address < endAddress
-			return address < it->getEndAddress() ? it : maps_.cend();
 		}
 
 	protected:
