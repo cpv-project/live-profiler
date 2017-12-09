@@ -80,10 +80,10 @@ namespace LiveProfiler {
 			--it;
 			// check is address >= fileOffset and address < fileOffset + symbolSize
 			const auto& symbolName = *it;
-			if (address >= symbolName->getFileOffset() + symbolName->getSymbolSize()) {
-				return nullptr;
+			if (address < symbolName->getFileOffset() + symbolName->getSymbolSize()) {
+				return symbolName;
 			}
-			return symbolName;
+			return nullptr;
 		}
 
 		/**
