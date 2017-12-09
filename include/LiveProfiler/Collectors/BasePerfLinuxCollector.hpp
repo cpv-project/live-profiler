@@ -184,7 +184,7 @@ namespace LiveProfiler {
 			threads_(),
 			threadsUpdated_(),
 			threadsUpdateInterval_(
-				std::chrono::milliseconds(DefaultThreadsUpdateInterval)),
+				std::chrono::milliseconds(+DefaultThreadsUpdateInterval)),
 			tidToPerfEntry_(),
 			perfEntryAllocator_(DefaultMaxFreePerfEntry),
 			perfType_(perfType),

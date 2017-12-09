@@ -1,7 +1,6 @@
 #include <iostream>
 #include <atomic>
 #include <thread>
-#include <LiveProfiler/Analyzers/CpuSampleDebugAnalyzer.hpp>
 #include <LiveProfiler/Profiler/Profiler.hpp>
 #include <LiveProfiler/Collectors/CpuSampleLinuxCollector.hpp>
 #include <LiveProfiler/Interceptors/CpuSampleLinuxSymbolResolveInterceptor.hpp>

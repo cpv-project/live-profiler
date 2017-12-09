@@ -103,7 +103,7 @@ namespace LiveProfiler {
 			pathAllocator_(nullptr),
 			maps_(),
 			mapsUpdated_(),
-			mapsUpdateMinInterval_(std::chrono::milliseconds(DefaultMapsUpdateMinInterval)),
+			mapsUpdateMinInterval_(std::chrono::milliseconds(+DefaultMapsUpdateMinInterval)),
 			mapsPathBuffer_(),
 			line_() { }
 

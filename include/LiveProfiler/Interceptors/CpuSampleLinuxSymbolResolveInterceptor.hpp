@@ -99,7 +99,7 @@ namespace LiveProfiler {
 			kernelResolver_(),
 			pidToAddressLocatorSwept_(),
 			pidToAddressLocatorSweepInterval_(
-				std::chrono::milliseconds(DefaultPidToAddressLocatorSweepInterval)),
+				std::chrono::milliseconds(+DefaultPidToAddressLocatorSweepInterval)),
 			lastPid_(0),
 			lastAddressLocatorIterator_() { }
 
