@@ -37,6 +37,7 @@ namespace LiveProfilerTests {
 		auto collector = profiler.useCollector<CpuSampleLinuxCollector>();
 		auto analyzer = profiler.addAnalyzer<CpuSampleDebugAnalyzer>();
 		auto interceptor = profiler.addInterceptor<CpuSampleLinuxSymbolResolveInterceptor>();
+		collector->setExcludeKernel(false);
 		collector->filterProcessByName("LiveProfilerTest");
 		// collector->filterProcessByName("a.out");
 
