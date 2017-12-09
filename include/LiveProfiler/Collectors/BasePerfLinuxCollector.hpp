@@ -8,10 +8,8 @@
 #include "../Utils/Allocators/FreeListAllocator.hpp"
 #include "../Utils/Allocators/SingletonAllocator.hpp"
 #include "../Utils/Platform/Linux/LinuxEpollDescriptor.hpp"
-#include "../Utils/Platform/Linux/LinuxExecutableSymbolResolver.hpp"
 #include "../Utils/Platform/Linux/LinuxPerfEntry.hpp"
 #include "../Utils/Platform/Linux/LinuxPerfUtils.hpp"
-#include "../Utils/Platform/Linux/LinuxProcessAddressLocator.hpp"
 #include "../Utils/Platform/Linux/LinuxProcessUtils.hpp"
 
 namespace LiveProfiler {
