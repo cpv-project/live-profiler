@@ -42,17 +42,25 @@ namespace LiveProfiler {
 				auto* data = reinterpret_cast<const CpuSampleRawData*>(record);
 				// setup model data
 				auto result = resultAllocator_.allocate();
-				result->setIp(data->ip);
+				auto ip = data->ip;
+				result->setIp(ip);
 				result->setPid(data->pid);
 				result->setTid(data->tid);
 				result->setSymbolName(nullptr);
 				auto& callChainIps = result->getCallChainIps();
 				auto& callChainSymbolNames = result->getCallChainSymbolNames();
 				if (data->header.size >= sizeof(CpuSampleRawDataWithCallChain)) {
-					auto* dataWithCallChain = (
-						reinterpret_cast<const CpuSampleRawDataWithCallChain*>(data));
+					auto* dataWithCallChain = reinterpret_cast<const CpuSampleRawDataWithCallChain*>(data);
 					for (std::size_t i = 0; i < dataWithCallChain->nr; ++i) {
 						auto callChainIp = dataWithCallChain->ips[i];
+						// don't include special instruction pointer
+						if ((callChainIp & SpecialInstructionPointerMask) == SpecialInstructionPointerMask) {
+							continue;
+						}
+						// don't include self
+						if (callChainIp == ip) {
+							continue;
+						}
 						callChainIps.emplace_back(callChainIp);
 						callChainSymbolNames.emplace_back(nullptr);
 					}
@@ -63,6 +71,13 @@ namespace LiveProfiler {
 			// all records handled, update read offset
 			entry->updateReadOffset();
 		}
+
+		/**
+		 * There some instruction pointer should be exclude from callchain like 0xfffffffffffffe00.
+		 * They looks like a switch between kernel space and user space.
+		 * This mask works with both x64 and i386.
+		 */
+		static const std::uint64_t SpecialInstructionPointerMask = 0xffffffffffff0000;
 
 		/** See man perf_events, section PERF_RECORD_SAMPLE */
 		struct CpuSampleRawData {
