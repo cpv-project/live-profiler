@@ -43,7 +43,10 @@ namespace LiveProfiler {
 			std::uint64_t samplePeriod, // eg: 100000
 			std::uint64_t sampleType, // eg: PERF_SAMPLE_IP | PERF_SAMPLE_TID
 			std::size_t mmapPageCount, // eg: 16, should be power of 2
-			std::uint32_t wakeupEvents) { // eg: 8, atleast 1
+			std::uint32_t wakeupEvents, // eg: 8, atleast 1
+			bool excludeUser, // exclude samples in user space
+			bool excludeKernel, // exclude samples in kernel space
+			bool excludeHv) { // exclude samples in hypervisor
 			// caller should set a valid pid
 			auto pid = entry->getPid();
 			if (pid <= 0) {
@@ -59,14 +62,16 @@ namespace LiveProfiler {
 			attr.disabled = 1;
 			attr.inherit = 0;
 			attr.wakeup_events = wakeupEvents;
-			attr.exclude_kernel = 1;
-			attr.exclude_hv = 1;
+			attr.exclude_user = excludeUser;
+			attr.exclude_kernel = excludeKernel;
+			attr.exclude_hv = excludeHv;
 			// open file descriptor
 			auto fd = perfEventOpen(&attr, pid, -1, -1, 0);
 			if (fd < 0) {
 				auto err = errno;
 				if (err == ESRCH) {
-					return false; // process may have exited
+					// process may have exited
+					return false;
 				}
 				throw ProfilerException(err, "[monitorSample] perf_event_open");
 			}

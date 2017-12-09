@@ -63,6 +63,7 @@ namespace LiveProfilerTests {
 		attr.disabled = 1;
 		attr.inherit = 0;
 		attr.wakeup_events = 1;
+		attr.exclude_user = 0;
 		attr.exclude_kernel = 1;
 		attr.exclude_hv = 1;
 		auto fd = LinuxPerfUtils::perfEventOpen(&attr, ::getpid(), -1, -1, 0);
@@ -83,7 +84,10 @@ namespace LiveProfilerTests {
 			100000,
 			PERF_SAMPLE_IP | PERF_SAMPLE_TID,
 			16,
-			1);
+			1,
+			false,
+			true,
+			true);
 		assert(ret);
 		LinuxPerfUtils::perfEventEnable(entry->getFd(), true);
 		epoll.add(entry->getFd(), EPOLLIN, tid);
@@ -108,7 +112,10 @@ namespace LiveProfilerTests {
 			100000,
 			PERF_SAMPLE_IP | PERF_SAMPLE_TID,
 			16,
-			1);
+			1,
+			false,
+			true,
+			true);
 		assert(ret);
 		LinuxPerfUtils::perfEventEnable(entry->getFd(), true);
 		LinuxPerfUtils::perfEventDisable(entry->getFd());
@@ -132,7 +139,10 @@ namespace LiveProfilerTests {
 			100000,
 			PERF_SAMPLE_IP | PERF_SAMPLE_TID,
 			16,
-			2);
+			2,
+			false,
+			true,
+			true);
 		assert(ret);
 		LinuxPerfUtils::perfEventEnable(entry->getFd(), true);
 		epoll.add(entry->getFd(), EPOLLIN, tid);

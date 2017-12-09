@@ -104,27 +104,7 @@ namespace LiveProfiler {
 			enabled_ = false;
 		}
 
-		/** Set how often to take a sample, the unit is cpu clock */
-		void setSamplePeriod(std::size_t samplePeriod) {
-			samplePeriod_ = samplePeriod;
-		}
-
-		/**
-		 * Set how many pages for the mmap ring buffer,
-		 * this count is not contains metadata page, and should be power of 2.
-		 */
-		void setMmapPageCount(std::size_t mmapPageCount) {
-			mmapPageCount_ = mmapPageCount;
-		}
-
-		/**
-		 * Set the number of records required to raise event.
-		 * A larger value may improve performance but delay the collection.
-		 */
-		void setWakeupEvents(std::size_t wakeupEvents) {
-			wakeupEvents_ = wakeupEvents;
-		}
-
+	public:
 		/** Set how often to update the list of processes */
 		template <class Rep, class Period>
 		void setProcessesUpdateInterval(std::chrono::duration<Rep, Period> interval) {
@@ -142,6 +122,56 @@ namespace LiveProfiler {
 			filterProcessBy(LinuxProcessUtils::getProcessFilterByName(name));
 		}
 
+		/**
+		 * Set how often to take a sample, the unit is cpu clock.
+		 * Default value is DefaultSamplePeriod.
+		 */
+		void setSamplePeriod(std::size_t samplePeriod) {
+			samplePeriod_ = samplePeriod;
+		}
+
+		/**
+		 * Set how many pages for the mmap ring buffer,
+		 * this count is not contains metadata page, and should be power of 2.
+		 * Default value is DefaultMmapPageCount.
+		 */
+		void setMmapPageCount(std::size_t mmapPageCount) {
+			mmapPageCount_ = mmapPageCount;
+		}
+
+		/**
+		 * Set the number of records required to raise an event.
+		 * A larger value may improve performance but delay the collection.
+		 * Default value is DefaultWakeupEvents.
+		 */
+		void setWakeupEvents(std::size_t wakeupEvents) {
+			wakeupEvents_ = wakeupEvents;
+		}
+
+		/**
+		 * Set whether to exclude samples in user space.
+		 * Default value is false.
+		 */
+		void setExcludeUser(bool excludeUser) {
+			excludeUser_ = excludeUser;
+		}
+
+		/**
+		 * Set whether to exclude samples in kernel space.
+		 * Default value is true.
+		 */
+		void setExcludeKernel(bool excludeKernel) {
+			excludeKernel_ = excludeKernel;
+		}
+
+		/**
+		 * Set whether to exclude samples in hypervisor.
+		 * Default value is true.
+		 */
+		void setExcludeHypervisor(bool excludeHypervisor) {
+			excludeHypervisor_ = excludeHypervisor;
+		}
+
 		/** Constructor */
 		CpuSampleLinuxCollector() :
 			results_(),
@@ -155,6 +185,9 @@ namespace LiveProfiler {
 			samplePeriod_(DefaultSamplePeriod),
 			mmapPageCount_(DefaultMmapPageCount),
 			wakeupEvents_(DefaultWakeupEvents),
+			excludeUser_(false),
+			excludeKernel_(true),
+			excludeHypervisor_(true),
 			enabled_(false),
 			epoll_() { }
 
@@ -195,7 +228,10 @@ namespace LiveProfiler {
 				samplePeriod_,
 				PERF_SAMPLE_IP | PERF_SAMPLE_TID | PERF_SAMPLE_CALLCHAIN,
 				mmapPageCount_,
-				wakeupEvents_);
+				wakeupEvents_,
+				excludeUser_,
+				excludeKernel_,
+				excludeHypervisor_);
 			// enable events if collecting
 			if (enabled_) {
 				LinuxPerfUtils::perfEventEnable(entry->getFd(), true);
@@ -271,6 +307,9 @@ namespace LiveProfiler {
 		std::size_t samplePeriod_;
 		std::size_t mmapPageCount_;
 		std::size_t wakeupEvents_;
+		bool excludeUser_;
+		bool excludeKernel_;
+		bool excludeHypervisor_;
 		bool enabled_;
 
 		LinuxEpollDescriptor epoll_;
