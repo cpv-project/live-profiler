@@ -112,7 +112,7 @@ namespace LiveProfiler {
 		void updateSymbolNames() {
 			// build path
 			static const std::string prefix("/tmp/perf-");
-			static const std::string suffix("/.map");
+			static const std::string suffix(".map");
 			if (symbolNamesPathBuffer_.empty()) {
 				symbolNamesPathBuffer_.appendStr(prefix.data(), prefix.size());
 				symbolNamesPathBuffer_.appendLongLong(pid_);
