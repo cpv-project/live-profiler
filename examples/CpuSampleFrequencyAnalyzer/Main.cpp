@@ -14,7 +14,7 @@ namespace {
 		std::cout << "No. Overhead Samples Symbol Name" << std::endl;
 		for (std::size_t i = 0; i < symbolNameAndCounts.size(); ++i) {
 			auto& symbolNameAndCount = symbolNameAndCounts[i];
-			std::cout << std::setw(3) << i << " " <<
+			std::cout << std::setw(3) << i+1 << " " <<
 				std::setw(8) << std::fixed << std::setprecision(2) <<
 				static_cast<double>(symbolNameAndCount.second) / totalCount << " " <<
 				std::setw(7) << symbolNameAndCount.second << " " <<

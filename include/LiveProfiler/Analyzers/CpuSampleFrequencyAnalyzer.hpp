@@ -88,10 +88,10 @@ namespace LiveProfiler {
 			topInclusiveSymbolNames_.clear();
 			topExclusiveSymbolNames_.clear();
 			for (const auto& pair : counts_) {
-				if (topInclusive > 0) {
+				if (topInclusive > 0 && pair.second.inclusiveCount > 0) {
 					topInclusiveSymbolNames_.emplace_back(pair.first, pair.second.inclusiveCount);
 				}
-				if (topExclusive > 0) {
+				if (topExclusive > 0 && pair.second.exclusiveCount > 0) {
 					topExclusiveSymbolNames_.emplace_back(pair.first, pair.second.exclusiveCount);
 				}
 			}
