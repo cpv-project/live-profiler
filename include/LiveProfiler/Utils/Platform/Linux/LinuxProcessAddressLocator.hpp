@@ -63,9 +63,9 @@ namespace LiveProfiler {
 			if (forceReload || now - mapsUpdated_ > mapsUpdateMinInterval_) {
 				reload();
 				mapsUpdated_ = now;
+				// second try
+				result = tryLocate(address);
 			}
-			// second try
-			result = tryLocate(address);
 			return result;
 		}
 

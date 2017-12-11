@@ -22,6 +22,22 @@ namespace LiveProfiler {
 		/** Default parameters */
 		static const std::size_t DefaultSymbolNamesUpdateMinInterval = 100;
 
+		/** For FreeListAllocator */
+		void freeResources() {
+			symbolNames_.clear();
+		}
+
+		/** For FreeListAllocator */
+		void reset(pid_t pid) {
+			pid_ = pid;
+			symbolNames_.clear();
+			symbolNamesUpdated_ = {};
+			symbolNamesPathBuffer_.clear();
+			path_ = nullptr;
+			line_.clear();
+			lastReadOffset_ = 0;
+		}
+
 		/**
 		 * Resolve custom symbol name from address.
 		 * Return nullptr if no symbol name is found.
@@ -40,9 +56,9 @@ namespace LiveProfiler {
 			if (forceUpdate || now - symbolNamesUpdated_ > symbolNamesUpdateMinInterval_) {
 				updateSymbolNames();
 				symbolNamesUpdated_ = now;
+				// second try
+				symbolName = tryResolve(address);
 			}
-			// second try
-			symbolName = tryResolve(address);
 			return symbolName;
 		}
 
@@ -54,6 +70,7 @@ namespace LiveProfiler {
 			symbolNamesUpdateMinInterval_(
 				std::chrono::milliseconds(+DefaultSymbolNamesUpdateMinInterval)),
 			symbolNamesPathBuffer_(),
+			path_(),
 			line_(),
 			lastReadOffset_(0) { }
 
