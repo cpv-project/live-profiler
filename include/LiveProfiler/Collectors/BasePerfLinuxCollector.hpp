@@ -72,6 +72,9 @@ namespace LiveProfiler {
 			}
 			results_.clear();
 			// poll events
+			if (timeout > threadsUpdateInterval_) {
+				timeout = threadsUpdateInterval_;
+			}
 			auto& events = epoll_.wait(timeout);
 			for (auto& event : events) {
 				// get entry by tid

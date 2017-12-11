@@ -11,6 +11,9 @@ namespace LiveProfiler {
 
 		/** Receive performance data */
 		void feed(const std::vector<std::unique_ptr<CpuSampleModel>>& models) override {
+			if (models.empty()) {
+				return;
+			}
 			std::cout << "[CpuSample] receive " << models.size() << " models" << std::endl;
 			for (const auto& model : models) {
 				auto& symbolName = model->getSymbolName();
@@ -33,6 +36,9 @@ namespace LiveProfiler {
 				}
 			}
 		}
+
+		/** Nothing to report */
+		int getReport() { return 0; }
 	};
 }
 

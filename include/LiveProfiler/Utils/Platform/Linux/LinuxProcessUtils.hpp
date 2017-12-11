@@ -116,12 +116,12 @@ namespace LiveProfiler {
 				target.resize(len);
 				// determine is process name matched
 				// name should be case sensitive and complete
-				auto index = target.find(name);
-				if (index == target.npos || index == 0 ||
-					target[index-1] != '/' || index+name.size() != target.size()) {
-					return false;
+				if (target.size() > name.size() &&
+					target.compare(target.size() - name.size(), name.size(), name) == 0 &&
+					target[target.size() - name.size() - 1] == '/') {
+					return true;
 				}
-				return true;
+				return false;
 			};
 		}
 
