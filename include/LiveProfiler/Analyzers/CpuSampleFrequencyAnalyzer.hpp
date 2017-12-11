@@ -13,6 +13,9 @@ namespace LiveProfiler {
 	 */
 	class CpuSampleFrequencyAnalyzer : public BaseAnalyzer<CpuSampleModel> {
 	public:
+		/** Default parameters */
+		static const std::size_t DefaultInclusiveTraceLevel = 3;
+
 		/** Reset the state to it's initial state */
 		void reset() override {
 			counts_.clear();
@@ -26,15 +29,25 @@ namespace LiveProfiler {
 		void feed(const std::vector<std::unique_ptr<CpuSampleModel>>& models) override {
 			for (const auto& model : models) {
 				countSymbolName(model->getSymbolName(), false);
+				std::size_t level = 0;
 				for (const auto& callChainSymbolName : model->getCallChainSymbolNames()) {
+					if (level++ >= inclusiveTraceLevel_) {
+						break;
+					}
 					countSymbolName(callChainSymbolName, true);
 				}
 			}
 		}
 
+		/** Set how many levels should be considered for inclusive sampling */
+		void setInclusiveTraceLevel(std::size_t inclusiveTraceLevel) {
+			inclusiveTraceLevel_ = inclusiveTraceLevel;
+		}
+
 		/** Constructor */
 		CpuSampleFrequencyAnalyzer() :
 			counts_(),
+			inclusiveTraceLevel_(DefaultInclusiveTraceLevel),
 			topInclusiveSymbolNames_(),
 			topExclusiveSymbolNames_(),
 			totalInclusiveCount_(0),
@@ -134,6 +147,7 @@ namespace LiveProfiler {
 		};
 
 		std::unordered_map<std::shared_ptr<SymbolName>, CountType> counts_;
+		std::size_t inclusiveTraceLevel_;
 		std::vector<SymbolNameAndCountType> topInclusiveSymbolNames_;
 		std::vector<SymbolNameAndCountType> topExclusiveSymbolNames_;
 		std::size_t totalInclusiveCount_;
