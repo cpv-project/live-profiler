@@ -21,7 +21,7 @@ namespace LiveProfilerTests {
 				}
 				sampleCount_ += models.size();
 			}
-			std::size_t getReport() const { return sampleCount_; }
+			std::size_t getResult() const { return sampleCount_; }
 
 		protected:
 			std::size_t sampleCount_ = 0;
@@ -50,7 +50,7 @@ namespace LiveProfilerTests {
 		}
 		flag = false;
 		t.join();
-		assert(analyzer->getReport() > 0);
+		assert(analyzer->getResult() > 0);
 	}
 
 	void testCpuSampleLinuxCollector() {

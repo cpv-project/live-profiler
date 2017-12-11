@@ -38,7 +38,7 @@ namespace LiveProfiler {
 		}
 
 		/** Nothing to report */
-		int getReport() { return 0; }
+		int getResult() { return 0; }
 	};
 }
 

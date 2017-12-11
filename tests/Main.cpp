@@ -1,3 +1,5 @@
+#include "./Cases/Analyzers/TestCpuSampleFrequencyAnalyzer.hpp"
+#include "./Cases/Analyzers/TestCpuSampleHotPathAnalyzer.hpp"
 #include "./Cases/Collectors/TestCpuSampleLinuxCollector.hpp"
 #include "./Cases/Interceptors/TestCpuSampleLinuxSymbolResolveInterceptor.hpp"
 #include "./Cases/Profiler/TestProfiler.hpp"
@@ -16,6 +18,8 @@
 
 namespace LiveProfilerTests {
 	void testAll() {
+		testCpuSampleFrequencyAnalyzer();
+		testCpuSampleHotPathAnalyzer();
 		testCpuSampleLinuxCollector();
 		testCpuSampleLinuxSymbolResolveInterceptor();
 		testProfiler();
