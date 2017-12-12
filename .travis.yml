@@ -8,12 +8,15 @@ matrix:
       addons:
         apt:
           sources:
-            - ubuntu-toolchain-r-test
+            - llvm-toolchain-trusty-5.0
           packages:
             - binutils-dev
-            - g++-7
-      env:
-        - MATRIX_EVAL="CC=gcc-7 && CXX=g++-7"
-before_install:
-  - eval "${MATRIX_EVAL}"
+            - clang-5.0
+            - libc++-dev
+            - libc++abi-dev
+      before_install:
+        - eval "export CC=clang-5.0"
+        - eval "export CXX=clang++-5.0"
+        - eval "export CXXFLAGS=-stdlib=libc++"
+        - eval "echo '' > /usr/include/xlocale.h"
 
