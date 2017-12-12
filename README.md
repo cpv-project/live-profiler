@@ -56,8 +56,8 @@ C++ compiler support at least c++14
 
 # How To Use
 
-There are many combinations of collectors and analyzers,
-here I chose the example "CpuSampleFrequencyAnalyzer" to explain,
+There are many combinations of collectors and analyzers,<br/>
+here I chose the example "CpuSampleFrequencyAnalyzer" to explain,<br/>
 this example program can analyze which functions have the higest CPU usage. 
 
 First, install the required packages:
@@ -72,7 +72,7 @@ cd live-profiler/examples/CpuSampleFrequencyAnalyzer
 sh run.sh a.out 20000
 ```
 
-It collects the running status of all programs named "a.out" in real time, and output the report after 20 seconds.
+It collects the running status of all programs named "a.out" in real time, and output the report after 20 seconds.<br/>
 The content of the report is like:
 
 ```
@@ -105,7 +105,7 @@ No. Overhead Samples Symbol Name
   9     0.00       3 mmap
 ```
 
-Because this project is a library, you may be more interested in how this example program is written,
+Because this project is a library, you may be more interested in how this example program is written,<br/>
 let's see the code:
 
 ``` c++
@@ -165,7 +165,7 @@ int main(int argc, char** argv) {
 }
 ```
 
-Function "printTopSymbolNames" is only used to output the report, it doesn't matter.
+Function "printTopSymbolNames" is only used to output the report, it doesn't matter.<br/>
 The second part of the main function is important, let's break it down one step at a time:
 
 First decide which model to use, in this case it's "CpuSampleModel", which represent a point of execution:
@@ -180,24 +180,24 @@ Then decide who analyzes these model data, in this case it's "CpuSampleFrequency
 
 `auto analyzer = profiler.addAnalyzer<CpuSampleFrequencyAnalyzer>();`
 
-Because "CpuSampleFrequencyAnalyzer" requires function symbol names,
-and "CpuSampleLinuxCollector" only provides memory address,
+Because "CpuSampleFrequencyAnalyzer" requires function symbol names,<br/>
+and "CpuSampleLinuxCollector" only provides memory address,<br/>
 a third party is need to convert memory address to function symbol name:
 
 `auto interceptor = profiler.addInterceptor<CpuSampleLinuxSymbolResolveInterceptor>();`
 
-Before start the collecting, we need to tell "CpuSampleLinuxCollector" which processes is interested,
+Before start the collecting, we need to tell "CpuSampleLinuxCollector" which processes is interested,<br/>
 processName can be "a.out", "python3", "java" or whatever, here it takes from command line:
 
 `collector->filterProcessByName(processName);`
 
-Now everything is ready, start collecting the data for the specified time,
+Now everything is ready, start collecting the data for the specified time,<br/>
 function "collectFor" can be called multiple times, and the data will be accumulated:
 
 `profiler.collectFor(std::chrono::milliseconds(collectTime));`
 
-Finally, enough data has been collected, we can start the analysis,
-different analyzers give different types of results,
+Finally, enough data has been collected, we can start the analysis,<br/>
+different analyzers give different types of results,<br/>
 "CpuSampleFrequencyAnalyzer" will give the top inclusive and exclusive symbol names:
 
 `auto result = analyzer->getResult(topInclusive, topExclusive);`
@@ -206,7 +206,7 @@ To compile this code, use the following command (also see it in run.sh):
 
 `g++ -Wall -Wextra --std=c++14 -O3 -g -I../../include Main.cpp -lbfd`
 
-Now you should be able to write a minimal profiler,
+Now you should be able to write a minimal profiler,<br/>
 you can find more detailed information from the following documents.
 
 # Collectors
