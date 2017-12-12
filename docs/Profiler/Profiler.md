@@ -1,6 +1,6 @@
 The source code of this class is located at [Profiler.hpp](../../include/LiveProfiler/Profiler/Profiler.hpp).
 
-Profiler is the entry point class coordinate collector, analyzers and interceptors,
+Profiler is the entry point class coordinate collector, analyzers and interceptors,<br/>
 to create a profiler instance you need to specific a model type, for example:
 
 ``` c++
@@ -19,7 +19,7 @@ Profiler<CpuSampleModel> profiler;
 
 # Functions in profiler
 
-**useCollector**
+### useCollector
 
 Use specified collector, replaces the old collector if this function is called twice.
 
@@ -30,7 +30,7 @@ Profiler<CpuSampleModel> profiler;
 auto collector = profiler.useCollector<CpuSampleLinuxCollector>();
 ```
 
-**addAnalyzer**
+### addAnalyzer
 
 Add analyzer to analyzer list.
 
@@ -41,7 +41,7 @@ Profiler<CpuSampleModel> profiler;
 auto analyzer = profiler.addAnalyzer<CpuSampleFrequencyAnalyzer>();
 ```
 
-**removeAnalyzer**
+### removeAnalyzer
 
 Remove analyzer from analyzer list, return whether the analyzer is in the list.
 
@@ -53,7 +53,7 @@ auto analyzer = profiler.addAnalyzer<CpuSampleFrequencyAnalyzer>();
 profiler.removeAnalyzer(analyzer);
 ```
 
-**addInterceptor**
+### addInterceptor
 
 Add interceptor to interceptor list.
 
@@ -64,7 +64,7 @@ Profiler<CpuSampleModel> profiler;
 auto interceptor = profiler.addInterceptor<CpuSampleLinuxSymbolResolveInterceptor>();
 ```
 
-**removeInterceptor**
+### removeInterceptor
 
 Remove interceptor from interceptor list, return whether the interceptor is in the list.
 
@@ -76,7 +76,7 @@ auto interceptor = profiler.addInterceptor<CpuSampleLinuxSymbolResolveIntercepto
 profiler.removeInterceptor(interceptor);
 ```
 
-**reset**
+### reset
 
 Reset state of collectors and analyzers.
 
@@ -92,7 +92,7 @@ while (true) {
 }
 ```
 
-**collectFor**
+### collectFor
 
 Collect data for specified time.
 
