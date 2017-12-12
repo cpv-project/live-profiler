@@ -1,4 +1,4 @@
-# Header only library for real time performance analysis
+# Header only library for real time performance analysis [![Build Status](https://travis-ci.org/cpv-project/live-profiler.svg?branch=master)](https://travis-ci.org/cpv-project/live-profiler)
 
 There are already many profiling tools on the market,
 but not much integrations well with other services.<br/>
