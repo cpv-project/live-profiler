@@ -7,7 +7,7 @@
 namespace LiveProfiler {
 	/**
 	 * Analyze which symbol names appear most frequently.
-	 * There two rankings:
+	 * There two different rankings:
 	 * Top Inclusive Symbol Names: The functions that uses the most cpu, include the functions it called
 	 * Top Exclusive Symbol Names: The functions that uses the most cpu, not include the functions it called
 	 */

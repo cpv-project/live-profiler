@@ -26,6 +26,6 @@ Returns the result of the backtrace made at the time of execution.
 
 ### getCallChainSymbolNames
 
-Returns the symbol names associated with instruction pointers in call chain, may contains nullptr.
+Returns the symbol names associated with instruction pointers in call chain, may contains nullptr.<br/>
 The result of getCallChainIps and getCallChainSymbolNames should have the same size.
 
