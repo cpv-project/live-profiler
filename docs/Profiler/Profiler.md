@@ -94,7 +94,7 @@ while (true) {
 
 ### collectFor
 
-Collect data for specified time.
+Collect and feed the data to the analyzers for the specified time.
 
 Example:
 

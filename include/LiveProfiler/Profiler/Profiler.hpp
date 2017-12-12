@@ -88,7 +88,7 @@ namespace LiveProfiler {
 			}
 		}
 
-		/** Collect data for specified time */
+		/** Collect and feed the data to the analyzers for the specified time. */
 		template <class Rep, class Period>
 		void collectFor(const std::chrono::duration<Rep, Period>& time) {
 			auto collector = collector_;
