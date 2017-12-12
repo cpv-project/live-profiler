@@ -170,41 +170,57 @@ The second part of the main function is important, let's break it down one step 
 
 First decide which model to use, in this case it's "CpuSampleModel", which represent a point of execution:
 
-`Profiler<CpuSampleModel> profiler;`
+``` c++
+Profiler<CpuSampleModel> profiler;
+```
 
 Next decide who provided these model data, in this case it's "CpuSampleLinuxCollector":
 
-`auto collector = profiler.useCollector<CpuSampleLinuxCollector>();`
+``` c++
+auto collector = profiler.useCollector<CpuSampleLinuxCollector>();
+```
 
 Then decide who analyzes these model data, in this case it's "CpuSampleFrequencyAnalyzer":
 
-`auto analyzer = profiler.addAnalyzer<CpuSampleFrequencyAnalyzer>();`
+``` c++
+auto analyzer = profiler.addAnalyzer<CpuSampleFrequencyAnalyzer>();
+```
 
 Because "CpuSampleFrequencyAnalyzer" requires function symbol names,<br/>
 and "CpuSampleLinuxCollector" only provides memory address,<br/>
 a third party is need to convert memory address to function symbol name:
 
-`auto interceptor = profiler.addInterceptor<CpuSampleLinuxSymbolResolveInterceptor>();`
+``` c++
+auto interceptor = profiler.addInterceptor<CpuSampleLinuxSymbolResolveInterceptor>();
+```
 
 Before start the collecting, we need to tell "CpuSampleLinuxCollector" which processes is interested,<br/>
 processName can be "a.out", "python3", "java" or whatever, here it takes from command line:
 
-`collector->filterProcessByName(processName);`
+``` c++
+collector->filterProcessByName(processName);
+```
 
 Now everything is ready, start collecting the data for the specified time.<br/>
 Function "collectFor" can be called multiple times, and the data will be accumulated.
 
-`profiler.collectFor(std::chrono::milliseconds(collectTime));`
+``` c++
+profiler.collectFor(std::chrono::milliseconds(collectTime));
+```
 
 Finally, enough data has been collected, we can start the analysis,<br/>
 different analyzers give different types of results,<br/>
 "CpuSampleFrequencyAnalyzer" will give the top inclusive and exclusive symbol names:
 
-`auto result = analyzer->getResult(topInclusive, topExclusive);`
+``` c++
+auto result = analyzer->getResult(topInclusive, topExclusive);
+```
 
 To compile this code, use the following command (also see it in run.sh):
 
-`g++ -Wall -Wextra --std=c++14 -O3 -g -I../../include Main.cpp -lbfd`
+``` bash
+g++ -Wall -Wextra --std=c++14 -O3 -g -I../../include Main.cpp -lbfd
+```
 
 Now you should be able to write a minimal profiler,<br/>
 you can find more detailed information from the following documents.

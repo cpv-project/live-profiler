@@ -15,7 +15,7 @@ namespace LiveProfiler {
 	 * Profiler entry point class
 	 *
 	 * Terms:
-	 * - The profiler should have a model class
+	 * - The profiler should have a model type
 	 * - The profiler should have exactly one collector
 	 * - The profiler may have one or more analyzers
 	 * - The profiler should not be copied, or used in multiple threads
@@ -28,9 +28,6 @@ namespace LiveProfiler {
 	 * profiler will get the performance data from collector in real time and feed analyzers.
 	 * When `collectFor` finished, you can get result from analyzers.
 	 * Performance data will retained between `collectFor`, you can clear it with function `reset`.
-	 *
-	 * Example:
-	 * TODO
 	 */
 	template <class Model>
 	class Profiler {
@@ -91,7 +88,7 @@ namespace LiveProfiler {
 			}
 		}
 
-		/** collect data within specified time */
+		/** Collect data for specified time */
 		template <class Rep, class Period>
 		void collectFor(const std::chrono::duration<Rep, Period>& time) {
 			auto collector = collector_;
