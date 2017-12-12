@@ -50,23 +50,174 @@ Each analyzer may return different types of report,<br/>
 you can dump them to console, generate a graph, or send to an APM service,<br/>
 anyway you should write your own code to handle the report.<br/>
 
-# Implemented Collectors
-
-TODO
-
-# Implemented Analyzers
-
-TODO
-
-# Implemented Interceptors
-
-TODO
-
 # Requirement
 
 C++ compiler support at least c++14
 
 # How To Use
+
+There are many combinations of collectors and analyzers,
+here I chose the example "CpuSampleFrequencyAnalyzer" to explain,
+this example program can analyze which functions have the higest CPU usage. 
+
+First, install the required packages:
+
+- Ubuntu: `sudo apt-get install g++ binutils-dev`
+- Fedora: `su -c "dnf install gcc-c++ binutils-devel"`
+
+Then, compile and run the example:
+
+``` bash
+cd live-profiler/examples/CpuSampleFrequencyAnalyzer
+sh run.sh a.out 20000
+```
+
+It collects the running status of all programs named "a.out" in real time, and output the report after 20 seconds.
+The content of the report is like:
+
+```
+top 13 inclusive symbol names:
+No. Overhead Samples Symbol Name
+  1     0.42   86582 make(int, NodePool&)
+  2     0.13   26340 apr_palloc
+  3     0.12   25406 main._omp_fn.0
+  4     0.09   17897 GOMP_parallel
+  5     0.07   13619 vmxarea
+  6     0.05   10930 Node::check() const
+  7     0.00     496 apr_pool_clear
+  8     0.00     335 main
+  9     0.00     335 __libc_start_main
+ 10     0.00      54 apr_allocator_destroy
+ 11     0.00      29 apr_pool_destroy
+ 12     0.00      11 __munmap
+ 13     0.00       3 mmap
+
+top 9 exclusive symbol names:
+No. Overhead Samples Symbol Name
+  1     0.51   26340 apr_palloc
+  2     0.23   11869 make(int, NodePool&)
+  3     0.19    9627 Node::check() const
+  4     0.03    1565 main._omp_fn.0
+  5     0.01     496 apr_pool_clear
+  6     0.00      54 apr_allocator_destroy
+  7     0.00      29 apr_pool_destroy
+  8     0.00      11 __munmap
+  9     0.00       3 mmap
+```
+
+Because this project is a library, you may be more interested in how this example program is written,
+let's see the code:
+
+``` c++
+#include <iostream>
+#include <iomanip>
+#include <LiveProfiler/Analyzers/CpuSampleFrequencyAnalyzer.hpp>
+#include <LiveProfiler/Profiler/Profiler.hpp>
+#include <LiveProfiler/Collectors/CpuSampleLinuxCollector.hpp>
+#include <LiveProfiler/Interceptors/CpuSampleLinuxSymbolResolveInterceptor.hpp>
+
+namespace {
+	using namespace LiveProfiler;
+
+	void printTopSymbolNames(
+		const std::vector<CpuSampleFrequencyAnalyzer::SymbolNameAndCountType>& symbolNameAndCounts,
+		std::size_t totalCount) {
+		std::cout << "No. Overhead Samples Symbol Name" << std::endl;
+		for (std::size_t i = 0; i < symbolNameAndCounts.size(); ++i) {
+			auto& symbolNameAndCount = symbolNameAndCounts[i];
+			std::cout << std::setw(3) << i+1 << " " <<
+				std::setw(8) << std::fixed << std::setprecision(2) <<
+				static_cast<double>(symbolNameAndCount.second) / totalCount << " " <<
+				std::setw(7) << symbolNameAndCount.second << " " <<
+				symbolNameAndCount.first->getName() << std::endl;
+		}
+	}
+}
+
+int main(int argc, char** argv) {
+	using namespace LiveProfiler;
+	if (argc < 3) {
+		std::cerr << "Usage: ./a.out ProcessName CollectTimeInMilliseconds" << std::endl;
+		return -1;
+	}
+	auto processName = argv[1];
+	auto collectTime = std::stoi(argv[2]);
+	
+	Profiler<CpuSampleModel> profiler;
+	auto collector = profiler.useCollector<CpuSampleLinuxCollector>();
+	auto analyzer = profiler.addAnalyzer<CpuSampleFrequencyAnalyzer>();
+	auto interceptor = profiler.addInterceptor<CpuSampleLinuxSymbolResolveInterceptor>();
+	collector->filterProcessByName(processName);
+	std::cout << "collect for " << processName << " in " << collectTime << " ms" << std::endl;
+	profiler.collectFor(std::chrono::milliseconds(collectTime));
+	
+	static std::size_t topInclusive = 100;
+	static std::size_t topExclusive = 100;
+	auto result = analyzer->getResult(topInclusive, topExclusive);
+	auto& topInclusiveSymbolNames = result.getTopInclusiveSymbolNames();
+	auto& topExclusiveSymbolNames = result.getTopExclusiveSymbolNames();
+	std::cout << "top " << topInclusiveSymbolNames.size() << " inclusive symbol names:" << std::endl;
+	printTopSymbolNames(topInclusiveSymbolNames, result.getTotalInclusiveCount());
+	std::cout << std::endl;
+	std::cout << "top " << topExclusiveSymbolNames.size() << " exclusive symbol names:" << std::endl;
+	printTopSymbolNames(topExclusiveSymbolNames, result.getTotalExclusiveCount());
+	return 0;
+}
+```
+
+Function "printTopSymbolNames" is only used to output the report, it doesn't matter.
+The second part of the main function is important, let's break it down one step at a time:
+
+First decide which model to use, in this case it's "CpuSampleModel", which represent a point of execution:
+
+`Profiler<CpuSampleModel> profiler;`
+
+Next decide who provided these model data, in this case it's "CpuSampleLinuxCollector":
+
+`auto collector = profiler.useCollector<CpuSampleLinuxCollector>();`
+
+Then decide who analyzes these model data, in this case it's "CpuSampleFrequencyAnalyzer":
+
+`auto analyzer = profiler.addAnalyzer<CpuSampleFrequencyAnalyzer>();`
+
+Because "CpuSampleFrequencyAnalyzer" requires function symbol names,
+and "CpuSampleLinuxCollector" only provides memory address,
+a third party is need to convert memory address to function symbol name:
+
+`auto interceptor = profiler.addInterceptor<CpuSampleLinuxSymbolResolveInterceptor>();`
+
+Before start the collecting, we need to tell "CpuSampleLinuxCollector" which processes is interested,
+processName can be "a.out", "python3", "java" or whatever, here it takes from command line:
+
+`collector->filterProcessByName(processName);`
+
+Now everything is ready, start collecting the data for the specified time,
+function "collectFor" can be called multiple times, and the data will be accumulated:
+
+`profiler.collectFor(std::chrono::milliseconds(collectTime));`
+
+Finally, enough data has been collected, we can start the analysis,
+different analyzers give different types of results,
+"CpuSampleFrequencyAnalyzer" will give the top inclusive and exclusive symbol names:
+
+`auto result = analyzer->getResult(topInclusive, topExclusive);`
+
+To compile this code, use the following command (also see it in run.sh):
+
+`g++ -Wall -Wextra --std=c++14 -O3 -g -I../../include Main.cpp -lbfd`
+
+Now you should be able to write a minimal profiler,
+you can find more detailed information from the following documents.
+
+# Collectors
+
+TODO
+
+# Analyzers
+
+TODO
+
+# Interceptors
 
 TODO
 
