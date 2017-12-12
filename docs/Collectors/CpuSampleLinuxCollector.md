@@ -72,7 +72,7 @@ Example:
 ``` c++
 Profiler<CpuSampleModel> profiler;
 auto collector = profiler.useCollector<CpuSampleLinuxCollector>();
-collector->setSamplePeriod("300000");
+collector->setSamplePeriod(300000);
 ```
 
 ### setMmapPageCount
