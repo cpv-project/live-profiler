@@ -18,5 +18,5 @@ matrix:
         - eval "export CC=clang-5.0"
         - eval "export CXX=clang++-5.0"
         - eval "export CXXFLAGS=-stdlib=libc++"
-        - eval "echo '' > /usr/include/xlocale.h"
+        - eval "sudo touch /usr/include/xlocale.h"
 
