@@ -192,8 +192,7 @@ processName can be "a.out", "python3", "java" or whatever, here it takes from co
 `collector->filterProcessByName(processName);`
 
 Now everything is ready, start collecting the data for the specified time.<br/>
-Function "collectFor" can be called multiple times, and the data will be accumulated,<br/>
-if you want to reset the existing data, call "profiler.reset()".
+Function "collectFor" can be called multiple times, and the data will be accumulated.
 
 `profiler.collectFor(std::chrono::milliseconds(collectTime));`
 
@@ -210,17 +209,27 @@ To compile this code, use the following command (also see it in run.sh):
 Now you should be able to write a minimal profiler,<br/>
 you can find more detailed information from the following documents.
 
-# Collectors
+# Documents
+
+**Profiler**
+
+- Profiler ([Document](./docs/Profiler/Profiler.md))
+
+**Models**
+
+- CpuSampleModel ([Document](./docs/Models/CpuSampleModel.md))
+
+**Collectors**
 
 - CpuSampleLinuxCollector ([Document](./docs/Collectors/CpuSampleLinuxCollector.md))
 
-# Analyzers
+**Analyzers**
 
 - CpuSampleDebugAnalyzer ([Document](./docs/Analyzers/CpuSampleDebugAnalyzer.md))
 - CpuSampleFrequencyAnalyzer ([Document](./docs/Analyzers/CpuSampleFrequencyAnalyzer.md))
 - CpuSampleHotPathAnalyzer ([Document](./docs/Analyzers/CpuSampleHotPathAnalyzer.md))
 
-# Interceptors
+**Interceptors**
 
 - CpuSampleLinuxSymbolResolveInterceptor ([Document](./docs/Interceptors/CpuSampleLinuxSymbolResolveInterceptor.md))
 
