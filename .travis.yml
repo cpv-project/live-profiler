@@ -2,10 +2,6 @@ language: cpp
 dist: trusty
 sudo: required
 script: cd tests && sudo sh run_tests.sh
-addons:
-  apt:
-    packages:
-      - binutils-dev
 matrix:
   include:
     - os: linux
@@ -14,10 +10,10 @@ matrix:
           sources:
             - ubuntu-toolchain-r-test
           packages:
+            - binutils-dev
             - g++-7
       env:
         - MATRIX_EVAL="CC=gcc-7 && CXX=g++-7"
-
 before_install:
   - eval "${MATRIX_EVAL}"
 
