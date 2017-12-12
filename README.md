@@ -191,8 +191,9 @@ processName can be "a.out", "python3", "java" or whatever, here it takes from co
 
 `collector->filterProcessByName(processName);`
 
-Now everything is ready, start collecting the data for the specified time,<br/>
-function "collectFor" can be called multiple times, and the data will be accumulated:
+Now everything is ready, start collecting the data for the specified time.<br/>
+Function "collectFor" can be called multiple times, and the data will be accumulated,<br/>
+if you want to reset the existing data, call "profiler.reset()".
 
 `profiler.collectFor(std::chrono::milliseconds(collectTime));`
 
@@ -211,15 +212,17 @@ you can find more detailed information from the following documents.
 
 # Collectors
 
-TODO
+- CpuSampleLinuxCollector ([Document](./docs/Collectors/CpuSampleLinuxCollector.md))
 
 # Analyzers
 
-TODO
+- CpuSampleDebugAnalyzer ([Document](./docs/Analyzers/CpuSampleDebugAnalyzer.md))
+- CpuSampleFrequencyAnalyzer ([Document](./docs/Analyzers/CpuSampleFrequencyAnalyzer.md))
+- CpuSampleHotPathAnalyzer ([Document](./docs/Analyzers/CpuSampleHotPathAnalyzer.md))
 
 # Interceptors
 
-TODO
+- CpuSampleLinuxSymbolResolveInterceptor ([Document](./docs/Interceptors/CpuSampleLinuxSymbolResolveInterceptor.md))
 
 # Coding Standards
 
