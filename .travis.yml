@@ -1,0 +1,12 @@
+language: cpp
+dist: trusty
+sudo: required
+script: cd tests && sh run_tests.sh
+compiler:
+  - clang
+  - gcc
+addons:
+  apt:
+    packages:
+      - binutils-dev
+
