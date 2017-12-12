@@ -1,10 +1,10 @@
 language: cpp
-dist: trusty
-sudo: required
 script: cd tests && sudo sh run_tests.sh
 matrix:
   include:
     - os: linux
+      dist: trusty
+      sudo: required
       addons:
         apt:
           sources:
