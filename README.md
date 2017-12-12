@@ -1,4 +1,8 @@
-# Header only library for real time performance analysis [![Build Status](https://travis-ci.org/cpv-project/live-profiler.svg?branch=master)](https://travis-ci.org/cpv-project/live-profiler)
+# Header only library for real time performance analysis
+
+[![Build Status](https://travis-ci.org/cpv-project/live-profiler.svg?branch=master)](https://travis-ci.org/cpv-project/live-profiler)
+[![license](https://img.shields.io/github/license/cpv-project/live-profiler.svg)]() 
+[![GitHub release](https://img.shields.io/github/release/cpv-project/live-profiler.svg)]()
 
 There are already many profiling tools on the market,
 but not much integrations well with other services.<br/>

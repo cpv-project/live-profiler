@@ -13,8 +13,8 @@ matrix:
             - binutils-dev
             - g++-7
       before_install:
-        - eval "export CC=gcc-7"
-        - eval "export CXX=g++-7"
+        - export CC=gcc-7
+        - export CXX=g++-7
     - os: linux
       dist: trusty
       sudo: required
@@ -28,10 +28,10 @@ matrix:
             - libc++-dev
             - libc++abi-dev
       before_install:
-        - eval "export CC=clang-5.0"
-        - eval "export CXX=clang++-5.0"
-        - eval "export CXXFLAGS=-stdlib=libc++"
-        - eval "sudo touch /usr/include/xlocale.h"
+        - export CC=clang-5.0
+        - export CXX=clang++-5.0
+        - export CXXFLAGS=-stdlib=libc++
+        - sudo touch /usr/include/xlocale.h
 
 
 

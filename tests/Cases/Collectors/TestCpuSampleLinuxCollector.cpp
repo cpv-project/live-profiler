@@ -50,7 +50,7 @@ namespace LiveProfilerTests {
 		}
 		flag = false;
 		t.join();
-		assert(analyzer->getResult() == 0);
+		assert(analyzer->getResult() > 0);
 	}
 
 	void testCpuSampleLinuxCollector() {
