@@ -85,7 +85,7 @@ namespace LiveProfiler {
 				throw ProfilerException(errno, "[monitorSample] mmap");
 			}
 			entry->setMmapAddress(
-				reinterpret_cast<char*>(address), totalSize, pageSize, wakeupEvents);
+				reinterpret_cast<char*>(address), totalSize, pageSize);
 			return true;
 		}
 	};

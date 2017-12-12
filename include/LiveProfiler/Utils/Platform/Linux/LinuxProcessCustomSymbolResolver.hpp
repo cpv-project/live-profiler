@@ -1,4 +1,5 @@
 #pragma once
+#include <unistd.h>
 #include <fstream>
 #include <algorithm>
 #include <limits>
@@ -25,6 +26,9 @@ namespace LiveProfiler {
 		/** For FreeListAllocator */
 		void freeResources() {
 			symbolNames_.clear();
+			if (!symbolNamesPathBuffer_.empty()) {
+				::unlink(symbolNamesPathBuffer_.data());
+			}
 		}
 
 		/** For FreeListAllocator */
