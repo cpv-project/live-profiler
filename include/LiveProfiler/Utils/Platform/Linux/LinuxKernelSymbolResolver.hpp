@@ -65,7 +65,7 @@ namespace LiveProfiler {
 				std::uintptr_t startAddress = 0;
 				std::string functionName;
 				StringUtils::split(line,
-					[this, &line, &startAddress, &functionName]
+					[&line, &startAddress, &functionName]
 					(auto startIndex, auto endIndex, auto count) {
 					if (count == 0) {
 						unsigned long long startAddressL = 0;

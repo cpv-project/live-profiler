@@ -8,6 +8,19 @@ matrix:
       addons:
         apt:
           sources:
+            - ubuntu-toolchain-r-test
+          packages:
+            - binutils-dev
+            - g++-7
+      before_install:
+        - eval "export CC=gcc-7"
+        - eval "export CXX=g++-7"
+    - os: linux
+      dist: trusty
+      sudo: required
+      addons:
+        apt:
+          sources:
             - llvm-toolchain-trusty-5.0
           packages:
             - binutils-dev
@@ -19,4 +32,6 @@ matrix:
         - eval "export CXX=clang++-5.0"
         - eval "export CXXFLAGS=-stdlib=libc++"
         - eval "sudo touch /usr/include/xlocale.h"
+
+
 
