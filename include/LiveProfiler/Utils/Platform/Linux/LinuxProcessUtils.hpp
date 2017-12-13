@@ -34,6 +34,8 @@ namespace LiveProfiler {
 			std::unique_ptr<::DIR, int(*)(DIR*)> procDirPtr(procDir, ::closedir);
 			// list directories under /proc
 			::dirent* entry = nullptr;
+			// use readdir not readdir_r, see lwn 696475
+			// cppcheck-suppress readdirCalled
 			while ((entry = ::readdir(procDirPtr.get())) != nullptr) {
 				if ((entry->d_type & DT_DIR) == 0) {
 					continue;
@@ -80,6 +82,8 @@ namespace LiveProfiler {
 			std::unique_ptr<::DIR, int(*)(DIR*)> taskDirPtr(taskDir, ::closedir);
 			// list directories under task path
 			::dirent* entry = nullptr;
+			// use readdir not readdir_r, see lwn 696475
+			// cppcheck-suppress readdirCalled
 			while ((entry = ::readdir(taskDirPtr.get())) != nullptr) {
 				if ((entry->d_type & DT_DIR) == 0) {
 					continue;

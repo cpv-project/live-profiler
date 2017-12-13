@@ -14,6 +14,7 @@ namespace LiveProfiler {
 		bool empty() const { return offset_ == 0; }
 
 		/** Constructor */
+		// cppcheck-suppress uninitMemberVar
 		StackBuffer() : offset_(0) { }
 
 		/** Reset offset to 0 */
