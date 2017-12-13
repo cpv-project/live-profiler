@@ -19,12 +19,13 @@ namespace LiveProfiler {
 		/** Reset the state to it's initial state */
 		void reset() override {
 			root_ = std::make_unique<NodeType>();
-			totalCount_ = 0;
+			totalSampleCount_ = 0;
 		}
 
 		/** Receive performance data */
 		void feed(const std::vector<std::unique_ptr<CpuSampleModel>>& models) override {
 			for (const auto& model : models) {
+				++totalSampleCount_;
 				countModel(root_, model, model->getCallChainSymbolNames().size());
 			}
 		}
@@ -32,7 +33,7 @@ namespace LiveProfiler {
 		/** Constructor */
 		CpuSampleHotPathAnalyzer() :
 			root_(std::make_unique<NodeType>()),
-			totalCount_(0) { }
+			totalSampleCount_(0) { }
 	
 	public:
 		/** Tree type represent the call path */
@@ -70,23 +71,23 @@ namespace LiveProfiler {
 		public:
 			/** Getters */
 			const auto& getRoot() const& { return root_; }
-			std::size_t getTotalCount() const { return totalCount_; }
+			std::size_t getTotalSampleCount() const { return totalSampleCount_; }
 
 			/** Constructor */
 			ResultType(
 				const std::unique_ptr<NodeType>& root,
-				std::size_t totalCount) :
+				std::size_t totalSampleCount) :
 				root_(root),
-				totalCount_(totalCount) { }
+				totalSampleCount_(totalSampleCount) { }
 
 		protected:
 			const std::unique_ptr<NodeType>& root_;
-			std::size_t totalCount_;
+			std::size_t totalSampleCount_;
 		};
 
 		/** Generate the result */
 		ResultType getResult() {
-			return ResultType(root_, totalCount_);
+			return ResultType(root_, totalSampleCount_);
 		}
 
 	protected:
@@ -117,7 +118,7 @@ namespace LiveProfiler {
 
 	protected:
 		std::unique_ptr<NodeType> root_;
-		std::size_t totalCount_;
+		std::size_t totalSampleCount_;
 	};
 }
 

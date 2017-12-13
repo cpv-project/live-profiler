@@ -23,7 +23,7 @@ namespace LiveProfilerTests {
 		{
 			std::vector<std::unique_ptr<CpuSampleModel>> models;
 			models.emplace_back(makeModel(symbolNameB, { symbolNameC }));
-			models.emplace_back(makeModel(symbolNameB, { symbolNameC }));
+			models.emplace_back(makeModel(symbolNameB, { nullptr, symbolNameC }));
 			models.emplace_back(makeModel(symbolNameC, { }));
 			analyzer->feed(models);
 		}
