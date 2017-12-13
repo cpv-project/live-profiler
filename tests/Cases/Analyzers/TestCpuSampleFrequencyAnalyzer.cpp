@@ -54,6 +54,14 @@ namespace LiveProfilerTests {
 			assert(topExclusiveSymbolNames.at(2).first == symbolNameC);
 			assert(topExclusiveSymbolNames.at(2).second == 1);
 		}
+		{
+			analyzer->reset();
+			auto result = analyzer->getResult(1000, 1000);
+			assert(result.getTopInclusiveSymbolNames().empty());
+			assert(result.getTopExclusiveSymbolNames().empty());
+			assert(result.getTotalInclusiveCount() == 0);
+			assert(result.getTotalExclusiveCount() == 0);
+		}
 	}
 }
 
