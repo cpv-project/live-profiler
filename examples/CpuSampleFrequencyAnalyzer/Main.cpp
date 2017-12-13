@@ -10,13 +10,13 @@ namespace {
 
 	void printTopSymbolNames(
 		const std::vector<CpuSampleFrequencyAnalyzer::SymbolNameAndCountType>& symbolNameAndCounts,
-		std::size_t totalCount) {
-		std::cout << "No. Overhead Samples Symbol Name" << std::endl;
+		std::size_t totalSampleCount) {
+		std::cout << "No. Overhead Samples SymbolName" << std::endl;
 		for (std::size_t i = 0; i < symbolNameAndCounts.size(); ++i) {
 			auto& symbolNameAndCount = symbolNameAndCounts[i];
 			std::cout << std::setw(3) << i+1 << " " <<
 				std::setw(8) << std::fixed << std::setprecision(2) <<
-				static_cast<double>(symbolNameAndCount.second) / totalCount << " " <<
+				static_cast<double>(symbolNameAndCount.second) / totalSampleCount << " " <<
 				std::setw(7) << symbolNameAndCount.second << " " <<
 				symbolNameAndCount.first->getName() << std::endl;
 		}
