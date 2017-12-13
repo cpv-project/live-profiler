@@ -25,6 +25,7 @@ namespace LiveProfiler {
 		void setSymbolName(const std::shared_ptr<SymbolName>& name) { symbolName_ = name; }
 
 		/** For FreeListAllocator */
+		// cppcheck-suppress functionStatic
 		void freeResources() { }
 
 		/** For FreeListAllocator */

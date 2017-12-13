@@ -49,6 +49,7 @@ namespace LiveProfilerTests {
 	void testLinuxProcessUtils() {
 		std::cout << __func__ << std::endl;
 		testLinuxProcessUtilsListProcesses();
+		testLinuxProcessUtilsListThreads();
 		testLinuxProcessUtilsGetProcessFilterByName();
 		testLinuxProcessUtilsIsProcessExists();
 	}

@@ -38,8 +38,10 @@ namespace LiveProfiler {
 					auto ret = snprintf(&str.front(), str.size(), "%lld", static_cast<long long>(i));
 					str.resize(ret);
 				}
+				// cppcheck-suppress CastAddressToIntegerAtReturn
 				return result;
 			})();
+			// cppcheck-suppress unsignedLessThanZero
 			if (size <= 0) {
 				return 0;
 			} else if (value >= 0 && value < static_cast<long long>(cache.size())) {

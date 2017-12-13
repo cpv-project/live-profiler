@@ -48,7 +48,7 @@ namespace LiveProfiler {
 		}
 
 		/** Constructor */
-		LinuxExecutableSymbolResolver(const std::shared_ptr<std::string>& path) :
+		explicit LinuxExecutableSymbolResolver(const std::shared_ptr<std::string>& path) :
 			path_(path),
 			loadEntries_(),
 			symbolNames_() {

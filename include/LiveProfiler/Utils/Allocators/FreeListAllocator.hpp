@@ -40,7 +40,7 @@ namespace LiveProfiler {
 		}
 
 		/** Constructor */
-		FreeListAllocator(std::size_t maxFree) :
+		explicit FreeListAllocator(std::size_t maxFree) :
 			free_(),
 			maxFree_(maxFree) { }
 

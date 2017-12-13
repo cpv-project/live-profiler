@@ -38,7 +38,7 @@ namespace LiveProfilerTests {
 		std::atomic_bool flag(true);
 		std::atomic_int n(0);
 		std::thread t([&flag, &n] {
-			while (flag) {
+			while (flag.load()) {
 				++n;
 				++n;
 				++n;
@@ -48,7 +48,7 @@ namespace LiveProfilerTests {
 		for (std::size_t i = 0; i < 3; ++i) {
 			profiler.collectFor(std::chrono::milliseconds(100));
 		}
-		flag = false;
+		flag.store(false);
 		t.join();
 		assert(analyzer->getResult() > 0);
 	}

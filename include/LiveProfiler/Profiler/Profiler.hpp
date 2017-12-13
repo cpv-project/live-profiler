@@ -128,7 +128,7 @@ namespace LiveProfiler {
 		/** RAII-style class for enable and disable collector */
 		class CollectorGuard {
 		public:
-			CollectorGuard(CollectorType& collector) : collector_(collector) {
+			explicit CollectorGuard(CollectorType& collector) : collector_(collector) {
 				collector_->enable();
 			}
 			~CollectorGuard() {

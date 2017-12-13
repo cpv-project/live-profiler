@@ -82,6 +82,7 @@ namespace LiveProfiler {
 			std::size_t totalSize = pageSize * pageCount;
 			auto* address = ::mmap(0, totalSize, PROT_READ | PROT_WRITE, MAP_SHARED, fd, 0);
 			if (address == nullptr || reinterpret_cast<intptr_t>(address) == -1) {
+				// cppcheck-suppress memleak
 				throw ProfilerException(errno, "[monitorSample] mmap");
 			}
 			entry->setMmapAddress(
