@@ -54,7 +54,7 @@ The output is like:
 
 ``` text
 top 16 inclusive symbol names:
-No. Overhead Samples Symbol Name
+No. Overhead Samples SymbolName
   1     1.71   50964 make(int, NodePool&)
   2     0.50   14860 apr_palloc
   3     0.47   13905 main._omp_fn.0
@@ -73,7 +73,7 @@ No. Overhead Samples Symbol Name
  16     0.00       1 vfprintf
 
 top 11 exclusive symbol names:
-No. Overhead Samples Symbol Name
+No. Overhead Samples SymbolName
   1     0.50   14860 apr_palloc
   2     0.23    6793 make(int, NodePool&)
   3     0.19    5749 Node::check() const
