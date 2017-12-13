@@ -55,9 +55,8 @@ namespace LiveProfilerTests {
 			auto result = analyzer->getResult();
 			assert(result.getTotalSampleCount() == 0);
 			auto& root = result.getRoot();
-			auto& rootChilds = root->getChilds();
 			assert(root->getCount() == 0);
-			assert(rootChilds.empty());
+			assert(root->getChilds().empty());
 		}
 	}
 }

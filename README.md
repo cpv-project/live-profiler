@@ -9,9 +9,6 @@ but not much integrations well with other services.<br/>
 So I decided to write a profiler library that can help peoples build their own profiler or APM agent.<br/>
 This library is intend to be high performance and easy to understand.<br/>
 
-The short term goal is to support cpu sampling on linux for native applications.<br/>
-Other platform and feature support may come later.<br/>
-
 # Design
 
 There are some concepts in the design:
