@@ -46,10 +46,10 @@ int main(int argc, char** argv) {
 	auto& topInclusiveSymbolNames = result.getTopInclusiveSymbolNames();
 	auto& topExclusiveSymbolNames = result.getTopExclusiveSymbolNames();
 	std::cout << "top " << topInclusiveSymbolNames.size() << " inclusive symbol names:" << std::endl;
-	printTopSymbolNames(topInclusiveSymbolNames, result.getTotalInclusiveCount());
+	printTopSymbolNames(topInclusiveSymbolNames, result.getTotalSampleCount());
 	std::cout << std::endl;
 	std::cout << "top " << topExclusiveSymbolNames.size() << " exclusive symbol names:" << std::endl;
-	printTopSymbolNames(topExclusiveSymbolNames, result.getTotalExclusiveCount());
+	printTopSymbolNames(topExclusiveSymbolNames, result.getTotalSampleCount());
 	return 0;
 }
 

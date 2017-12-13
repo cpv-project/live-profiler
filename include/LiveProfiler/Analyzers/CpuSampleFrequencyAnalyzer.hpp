@@ -21,13 +21,13 @@ namespace LiveProfiler {
 			counts_.clear();
 			topInclusiveSymbolNames_.clear();
 			topExclusiveSymbolNames_.clear();
-			totalInclusiveCount_ = 0;
-			totalExclusiveCount_ = 0;
+			totalSampleCount_ = 0;
 		}
 
 		/** Receive performance data */
 		void feed(const std::vector<std::unique_ptr<CpuSampleModel>>& models) override {
 			for (const auto& model : models) {
+				++totalSampleCount_;
 				countSymbolName(model->getSymbolName(), false);
 				std::size_t level = 0;
 				for (const auto& callChainSymbolName : model->getCallChainSymbolNames()) {
@@ -50,8 +50,7 @@ namespace LiveProfiler {
 			inclusiveTraceLevel_(DefaultInclusiveTraceLevel),
 			topInclusiveSymbolNames_(),
 			topExclusiveSymbolNames_(),
-			totalInclusiveCount_(0),
-			totalExclusiveCount_(0) { }
+			totalSampleCount_(0) { }
 
 	public:
 		using SymbolNameAndCountType = std::pair<std::shared_ptr<SymbolName>, std::size_t>;
@@ -62,25 +61,21 @@ namespace LiveProfiler {
 			/** Getters */
 			const auto& getTopInclusiveSymbolNames() const& { return topInclusiveSymbolNames_; }
 			const auto& getTopExclusiveSymbolNames() const& { return topExclusiveSymbolNames_; }
-			std::size_t getTotalInclusiveCount() const { return totalInclusiveCount_; }
-			std::size_t getTotalExclusiveCount() const { return totalExclusiveCount_; }
+			std::size_t getTotalSampleCount() const { return totalSampleCount_; }
 
 			/** Constructor */
 			ResultType(
 				const std::vector<SymbolNameAndCountType>& topInclusiveSymbolNames,
 				const std::vector<SymbolNameAndCountType>& topExclusiveSymbolNames,
-				std::size_t totalInclusiveCount,
-				std::size_t totalExclusiveCount) :
+				std::size_t totalSampleCount) :
 				topInclusiveSymbolNames_(topInclusiveSymbolNames),
 				topExclusiveSymbolNames_(topExclusiveSymbolNames),
-				totalInclusiveCount_(totalInclusiveCount),
-				totalExclusiveCount_(totalExclusiveCount) { }
+				totalSampleCount_(totalSampleCount) { }
 
 		protected:
 			const std::vector<SymbolNameAndCountType>& topInclusiveSymbolNames_;
 			const std::vector<SymbolNameAndCountType>& topExclusiveSymbolNames_;
-			std::size_t totalInclusiveCount_;
-			std::size_t totalExclusiveCount_;
+			std::size_t totalSampleCount_;
 		};
 
 		/** Generate the result */
@@ -119,18 +114,13 @@ namespace LiveProfiler {
 			return ResultType(
 				topInclusiveSymbolNames_,
 				topExclusiveSymbolNames_,
-				totalInclusiveCount_,
-				totalExclusiveCount_);
+				totalSampleCount_);
 		}
 
 	protected:
 		/** Increase count for symbol name */
 		void countSymbolName(
 			const std::shared_ptr<SymbolName>& symbolName, bool inclusive) {
-			++totalInclusiveCount_;
-			if (!inclusive) {
-				++totalExclusiveCount_;
-			}
 			if (symbolName != nullptr) {
 				auto& count = counts_[symbolName];
 				++count.inclusiveCount;
@@ -150,8 +140,7 @@ namespace LiveProfiler {
 		std::size_t inclusiveTraceLevel_;
 		std::vector<SymbolNameAndCountType> topInclusiveSymbolNames_;
 		std::vector<SymbolNameAndCountType> topExclusiveSymbolNames_;
-		std::size_t totalInclusiveCount_;
-		std::size_t totalExclusiveCount_;
+		std::size_t totalSampleCount_;
 	};
 }
 

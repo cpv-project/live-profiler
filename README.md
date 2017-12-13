@@ -80,33 +80,38 @@ It collects the running status of all programs named "a.out" in real time, and o
 The content of the report is like:
 
 ```
-top 13 inclusive symbol names:
+top 16 inclusive symbol names:
 No. Overhead Samples Symbol Name
-  1     0.42   86582 make(int, NodePool&)
-  2     0.13   26340 apr_palloc
-  3     0.12   25406 main._omp_fn.0
-  4     0.09   17897 GOMP_parallel
-  5     0.07   13619 vmxarea
-  6     0.05   10930 Node::check() const
-  7     0.00     496 apr_pool_clear
-  8     0.00     335 main
-  9     0.00     335 __libc_start_main
- 10     0.00      54 apr_allocator_destroy
- 11     0.00      29 apr_pool_destroy
+  1     1.71   50964 make(int, NodePool&)
+  2     0.50   14860 apr_palloc
+  3     0.47   13905 main._omp_fn.0
+  4     0.30    8969 GOMP_parallel
+  5     0.26    7776 vmxarea
+  6     0.22    6496 Node::check() const
+  7     0.01     279 apr_pool_clear
+  8     0.01     185 main
+  9     0.01     185 __libc_start_main
+ 10     0.00      47 apr_allocator_destroy
+ 11     0.00      25 apr_pool_destroy
  12     0.00      11 __munmap
- 13     0.00       3 mmap
+ 13     0.00       2 __vsprintf_chk
+ 14     0.00       2 mmap
+ 15     0.00       1 _IO_default_xsputn
+ 16     0.00       1 vfprintf
 
-top 9 exclusive symbol names:
+top 11 exclusive symbol names:
 No. Overhead Samples Symbol Name
-  1     0.51   26340 apr_palloc
-  2     0.23   11869 make(int, NodePool&)
-  3     0.19    9627 Node::check() const
-  4     0.03    1565 main._omp_fn.0
-  5     0.01     496 apr_pool_clear
-  6     0.00      54 apr_allocator_destroy
-  7     0.00      29 apr_pool_destroy
+  1     0.50   14860 apr_palloc
+  2     0.23    6793 make(int, NodePool&)
+  3     0.19    5749 Node::check() const
+  4     0.04    1122 main._omp_fn.0
+  5     0.01     279 apr_pool_clear
+  6     0.00      47 apr_allocator_destroy
+  7     0.00      25 apr_pool_destroy
   8     0.00      11 __munmap
-  9     0.00       3 mmap
+  9     0.00       2 mmap
+ 10     0.00       1 _IO_default_xsputn
+ 11     0.00       1 vfprintf
 ```
 
 Because this project is a library, you may be more interested in how this example program is written,<br/>

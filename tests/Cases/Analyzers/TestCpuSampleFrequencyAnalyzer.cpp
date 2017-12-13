@@ -41,6 +41,7 @@ namespace LiveProfilerTests {
 			assert(topExclusiveSymbolNames.at(0).second == 3);
 			assert(topExclusiveSymbolNames.at(1).first == symbolNameB);
 			assert(topExclusiveSymbolNames.at(1).second == 2);
+			assert(result.getTotalSampleCount() == 6);
 		}
 		{
 			auto result = analyzer->getResult(0, 1000);
@@ -53,14 +54,14 @@ namespace LiveProfilerTests {
 			assert(topExclusiveSymbolNames.at(1).second == 2);
 			assert(topExclusiveSymbolNames.at(2).first == symbolNameC);
 			assert(topExclusiveSymbolNames.at(2).second == 1);
+			assert(result.getTotalSampleCount() == 6);
 		}
 		{
 			analyzer->reset();
 			auto result = analyzer->getResult(1000, 1000);
 			assert(result.getTopInclusiveSymbolNames().empty());
 			assert(result.getTopExclusiveSymbolNames().empty());
-			assert(result.getTotalInclusiveCount() == 0);
-			assert(result.getTotalExclusiveCount() == 0);
+			assert(result.getTotalSampleCount() == 0);
 		}
 	}
 }
