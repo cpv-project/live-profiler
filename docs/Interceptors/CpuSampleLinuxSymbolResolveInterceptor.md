@@ -31,21 +31,35 @@ VM based programs written in java, .net, etc needs to do some extra works.
 
 ### Java
 
-Follow the instruction here:
+For java you need a jvm agent from [here](https://github.com/jvm-profiling-tools/perf-map-agent).
+Since upstream didn't support "agentpath" option I will use a fork here until this [PR](https://github.com/jvm-profiling-tools/perf-map-agent/pull/63) is merged.
 
-[https://github.com/jvm-profiling-tools/perf-map-agent](https://github.com/jvm-profiling-tools/perf-map-agent)
+Build perf-map-agent:
 
-The command you need should be "create-java-perf-map.sh <pid>".
+``` bash
+git clone https://github.com/trustin/perf-map-agent
+cd perf-map-agent
+export JAVA_HOME=/usr/lib/jvm/java-9-openjdk-amd64
+cmake .
+make
+sudo cp -f out/libperfmap.so /usr/lib
+```
+
+Then execute your java program:
+
+``` bash
+java -agentpath:/usr/lib/libperfmap.so programName
+```
 
 ### .Net
 
-Support for .net(coreclr only) is very simple, just export the following environment variable:
+Support for .net(coreclr only) is very simple.
+Just export the following environment variable and execute your .net program.
 
 ``` bash
 export COMPlus_PerfMapEnabled=1
+dotnet programName.dll
 ```
-
-And execute your .net program.
 
 It may cause many junk files leaved in "/tmp" if you don't clean it manually,<br/>
 the suggested solution would be mount "/tmp" to a memory based temporary file system.
