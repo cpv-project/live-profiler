@@ -31,7 +31,7 @@ VM based programs written in java, .net, etc needs to do some extra works.
 
 ### Java
 
-For java you need a jvm agent from [here](https://github.com/jvm-profiling-tools/perf-map-agent).
+For java you need a jvm agent from [here](https://github.com/jvm-profiling-tools/perf-map-agent).<br/>
 Since upstream didn't support "agentpath" option I will use a fork here until this [PR](https://github.com/jvm-profiling-tools/perf-map-agent/pull/63) is merged.
 
 Build perf-map-agent:
@@ -53,7 +53,7 @@ java -agentpath:/usr/lib/libperfmap.so programName
 
 ### .Net
 
-Support for .net(coreclr only) is very simple.
+Support for .net(coreclr only) is very simple.<br/>
 Just export the following environment variable and execute your .net program.
 
 ``` bash
