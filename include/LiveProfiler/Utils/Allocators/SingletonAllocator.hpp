@@ -6,19 +6,20 @@
 namespace LiveProfiler {
 	/**
 	 * Class used to allocate the same instance from the same key.
-	 * T should be constructible from TKey.
+	 * T should be constructible with the arguments from allocate function.
 	 * This class is not thread safe.
 	 */
 	template <class TKey, class T>
 	class SingletonAllocator {
 	public:
 		/** Allocate T instance */
-		template <class Head,
+		template <class Head, class... Rest,
 			std::enable_if_t<std::is_same<std::decay_t<Head>, std::decay_t<TKey>>::value, int> = 0>
-		std::shared_ptr<T> allocate(Head&& key) {
+		std::shared_ptr<T> allocate(Head&& key, Rest&&... rest) {
 			auto it = mapping_.find(key);
 			if (it == mapping_.end()) {
-				auto pair = mapping_.emplace(key, std::make_shared<T>(key));
+				auto pair = mapping_.emplace(key,
+					std::make_shared<T>(std::forward<Head>(key), std::forward<Rest>(rest)...));
 				it = pair.first;
 			}
 			return it->second;

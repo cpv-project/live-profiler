@@ -6,6 +6,7 @@
 #include <chrono>
 #include <vector>
 #include "../../../Models/Shared/SymbolName.hpp"
+#include "../../Allocators/SingletonAllocator.hpp"
 #include "../../Containers/StackBuffer.hpp"
 #include "../../StringUtils.hpp"
 #include "../../TypeConvertUtils.hpp"
@@ -69,6 +70,7 @@ namespace LiveProfiler {
 		/** Constructor */
 		LinuxProcessCustomSymbolResolver() :
 			pid_(0),
+			symbolNameAllocator_(),
 			symbolNames_(),
 			symbolNamesUpdated_(),
 			symbolNamesUpdateMinInterval_(
@@ -174,6 +176,7 @@ namespace LiveProfiler {
 
 	protected:
 		pid_t pid_;
+		std::shared_ptr<SingletonAllocator<std::string, SymbolName>> symbolNameAllocator_;
 		std::vector<std::shared_ptr<SymbolName>> symbolNames_;
 		std::chrono::high_resolution_clock::time_point symbolNamesUpdated_;
 		std::chrono::high_resolution_clock::duration symbolNamesUpdateMinInterval_;
