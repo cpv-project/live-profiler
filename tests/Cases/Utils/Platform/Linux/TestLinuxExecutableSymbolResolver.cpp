@@ -23,8 +23,8 @@ namespace LiveProfilerTests {
 		assert(symbolName->getOriginalName().find(__func__) != std::string::npos);
 		assert(symbolName->getName().find(__func__) != std::string::npos);
 		assert(symbolName->getPath() == pathAndOffset.first);
-		assert(symbolName->getFileOffset() > 0);
-		assert(symbolName->getSymbolSize() > 0);
+		assert(symbolName->getFileOffsetStart() > 0);
+		assert(symbolName->getFileOffsetEnd() > symbolName->getFileOffsetStart());
 	}
 
 	void testLinuxExecutableSymbolResolver() {

@@ -23,20 +23,18 @@ namespace LiveProfiler {
 			if (address < minAddress_ || address >= maxAddress_) {
 				return nullptr;
 			}
-			// find first symbol that fileOffset > address
+			// find first symbol that fileOffsetEnd > address
 			auto it = std::upper_bound(
 				symbolNames_.cbegin(), symbolNames_.cend(), address,
 				[](const auto& a, const auto& b) {
-					return a < b->getFileOffset();
+					return a < b->getFileOffsetEnd();
 				});
-			// get the previous symbol
-			if (it == symbolNames_.cbegin()) {
+			if (it == symbolNames_.cend()) {
 				return nullptr;
 			}
-			--it;
-			// check is address >= fileOffset and address < fileOffset + symbolSize
+			// check is address >= fileOffsetStart and address < fileOffsetEnd
 			const auto& symbolName = *it;
-			if (address < symbolName->getFileOffset() + symbolName->getSymbolSize()) {
+			if (address >= symbolName->getFileOffsetStart()) {
 				return symbolName;
 			}
 			return nullptr;
@@ -86,26 +84,25 @@ namespace LiveProfiler {
 						std::numeric_limits<std::uintptr_t>::max() ==
 						static_cast<std::size_t>(std::numeric_limits<std::uintptr_t>::max()),
 						"ensure case std::uintptr_t to std::size_t will not cause overflow");
-					symbolName->setFileOffset(static_cast<std::size_t>(startAddress));
+					symbolName->setFileOffsetStart(static_cast<std::size_t>(startAddress));
 					symbolNames_.emplace_back(std::move(symbolName));
 				}
 			}
 			// sort symbol names and guess size
 			std::sort(symbolNames_.begin(), symbolNames_.end(), [](auto& a, auto& b) {
-				return a->getFileOffset() < b->getFileOffset();
+				return a->getFileOffsetStart() < b->getFileOffsetStart();
 			});
 			for (auto it = symbolNames_.begin(); it < symbolNames_.end(); ++it) {
 				auto next = it + 1;
 				if (next < symbolNames_.end()) {
-					(*it)->setSymbolSize((*next)->getFileOffset() - (*it)->getFileOffset());
+					(*it)->setFileOffsetEnd((*next)->getFileOffsetStart());
 				} else {
-					(*it)->setSymbolSize(1);
+					(*it)->setFileOffsetEnd((*it)->getFileOffsetStart() + 1);
 				}
 			}
 			// set min address and max address
-			minAddress_ = symbolNames_.empty() ? 0 : symbolNames_.front()->getFileOffset();
-			maxAddress_ = symbolNames_.empty() ? 0 : (
-				symbolNames_.back()->getFileOffset() + symbolNames_.back()->getSymbolSize());
+			minAddress_ = symbolNames_.empty() ? 0 : symbolNames_.front()->getFileOffsetStart();
+			maxAddress_ = symbolNames_.empty() ? 0 : symbolNames_.back()->getFileOffsetEnd();
 		}
 
 	protected:

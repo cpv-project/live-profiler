@@ -157,12 +157,7 @@ namespace LiveProfiler {
 					}
 				});
 				if (startAddress != 0 && symbolSize != 0 && !functionName.empty()) {
-					auto symbolName = std::make_shared<SymbolName>();
-					symbolName->setOriginalName(std::move(functionName));
-					symbolName->setDemangleName("");
-					symbolName->setPath(path_);
-					symbolName->setFileOffset(static_cast<std::size_t>(startAddress));
-					symbolName->setSymbolSize(symbolSize);
+					auto symbolName = std::make_shared<SymbolName>(std::move(functionName), path_);
 					symbolNames_.emplace_back(SymbolNameWithOffset({
 						std::move(symbolName),
 						static_cast<std::size_t>(startAddress),

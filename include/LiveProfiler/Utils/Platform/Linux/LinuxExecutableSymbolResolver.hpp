@@ -23,26 +23,21 @@ namespace LiveProfiler {
 
 		/** Resolve symbol name from file offset, return nullptr if not found */
 		std::shared_ptr<SymbolName> resolve(std::size_t offset) {
-			// find first symbol that fileOffset > offset
+			// find first symbol that fileOffsetEnd > offset
 			auto it = std::upper_bound(
 				symbolNames_.cbegin(), symbolNames_.cend(), offset,
 				[](const auto& a, const auto& b) {
-					return a < b->getFileOffset();
+					return a < b->getFileOffsetEnd();
 				});
-			// find out which previous symbol contains this offset
-			// only check the symbols that have same address with the first
-			// gives [ ..., s', s', s, s, s, it, ... ], check [s, s, s]
-			std::size_t fileOffset = 0;
-			for (bool isFirst = true; it != symbolNames_.cbegin(); isFirst = false) {
-				--it;
-				if (offset < (*it)->getFileOffset() + (*it)->getSymbolSize()) {
-					return *it;
-				}
-				if (isFirst) {
-					fileOffset = (*it)->getFileOffset();
-				} else if (fileOffset != (*it)->getFileOffset()) {
-					break;
-				}
+			if (it == symbolNames_.cend()) {
+				return nullptr;
+			}
+			// check is offset >= fileOffsetStart and offset < fileOffsetEnd
+			// since the smallest fileOffsetStart will come first when fileOffsetEnd is equal
+			// only check the first element
+			const auto& symbolName = *it;
+			if (offset >= symbolName->getFileOffsetStart()) {
+				return symbolName;
 			}
 			return nullptr;
 		}
@@ -233,17 +228,17 @@ namespace LiveProfiler {
 					symbolName->setDemangleName("");
 				}
 				symbolName->setPath(path_);
-				symbolName->setFileOffset(fileOffset);
-				symbolName->setSymbolSize(size);
+				symbolName->setFileOffsetStart(fileOffset);
+				symbolName->setFileOffsetEnd(fileOffset + size);
 				symbolNames_.emplace_back(std::move(symbolName));
 			}
-			// sort symbolNames_ by file offset then by symbol size
+			// sort symbolNames_ by file offset
 			// it's already sorted by virtual address
 			std::sort(symbolNames_.begin(), symbolNames_.end(), [](auto& a, auto& b) {
-				if (a->getFileOffset() != b->getFileOffset()) {
-					return a->getFileOffset() < b->getFileOffset();
+				if (a->getFileOffsetEnd() != b->getFileOffsetEnd()) {
+					return a->getFileOffsetEnd() < b->getFileOffsetEnd();
 				}
-				return a->getSymbolSize() < b->getSymbolSize();
+				return a->getFileOffsetStart() < b->getFileOffsetStart();
 			});
 		}
 
