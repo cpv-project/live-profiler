@@ -27,10 +27,15 @@ namespace LiveProfiler {
 		}
 
 		/** Constructor */
-		SymbolName() :
-			originalName_(),
+		SymbolName() : SymbolName("", nullptr) { }
+
+		/** Constructor */
+		SymbolName(
+			const std::string& name,
+			const std::shared_ptr<std::string>& path) :
+			originalName_(name),
 			demangleName_(),
-			path_(),
+			path_(path),
 			fileOffset_(0),
 			symbolSize_(0) { }
 

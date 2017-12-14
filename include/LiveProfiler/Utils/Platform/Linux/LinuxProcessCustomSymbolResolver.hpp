@@ -90,21 +90,19 @@ namespace LiveProfiler {
 			if (symbolNames_.empty()) {
 				return nullptr;
 			}
-			// find first symbol that fileOffset > address
+			// find first symbol that fileOffsetEnd > address
 			auto it = std::upper_bound(
 				symbolNames_.cbegin(), symbolNames_.cend(), address,
 				[](const auto& a, const auto& b) {
-					return a < b->getFileOffset();
+					return a < b.fileOffsetEnd;
 				});
-			// get the previous symbol
-			if (it == symbolNames_.cbegin()) {
+			if (it == symbolNames_.cend()) {
 				return nullptr;
 			}
-			--it;
-			// check is address >= fileOffset and address < fileOffset + symbolSize
+			// check is address >= fileOffsetStart and address < fileOffsetEnd
 			const auto& symbolName = *it;
-			if (address < symbolName->getFileOffset() + symbolName->getSymbolSize()) {
-				return symbolName;
+			if (address >= symbolName.fileOffsetStart) {
+				return symbolName.symbolName;
 			}
 			return nullptr;
 		}
@@ -165,19 +163,30 @@ namespace LiveProfiler {
 					symbolName->setPath(path_);
 					symbolName->setFileOffset(static_cast<std::size_t>(startAddress));
 					symbolName->setSymbolSize(symbolSize);
-					symbolNames_.emplace_back(std::move(symbolName));
+					symbolNames_.emplace_back(SymbolNameWithOffset({
+						std::move(symbolName),
+						static_cast<std::size_t>(startAddress),
+						static_cast<std::size_t>(startAddress) + symbolSize
+					}));
 				}
 			}
 			// sort symbol names by address
 			std::sort(symbolNames_.begin(), symbolNames_.end(), [](auto& a, auto& b) {
-				return a->getFileOffset() < b->getFileOffset();
+				return a.fileOffsetEnd < b.fileOffsetEnd;
 			});
 		}
+
+		/** Custom symbol name doesn't have a fixed file offset across all resolver */
+		struct SymbolNameWithOffset {
+			std::shared_ptr<SymbolName> symbolName = nullptr;
+			std::size_t fileOffsetStart = 0;
+			std::size_t fileOffsetEnd = 0;
+		};
 
 	protected:
 		pid_t pid_;
 		std::shared_ptr<SingletonAllocator<std::string, SymbolName>> symbolNameAllocator_;
-		std::vector<std::shared_ptr<SymbolName>> symbolNames_;
+		std::vector<SymbolNameWithOffset> symbolNames_;
 		std::chrono::high_resolution_clock::time_point symbolNamesUpdated_;
 		std::chrono::high_resolution_clock::duration symbolNamesUpdateMinInterval_;
 		StackBuffer<128> symbolNamesPathBuffer_;
