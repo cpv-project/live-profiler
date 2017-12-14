@@ -80,6 +80,8 @@ namespace LiveProfiler {
 			kernelResolver_(),
 			pidToCustomResolver_(),
 			customResolverAllocator_(DefaultMaxFreeCustomResolver),
+			customSymbolNamePath_(std::make_shared<std::string>("perfmap")),
+			customSymbolNameAllocator_(std::make_shared<SingletonAllocator<std::string, SymbolName>>()),
 			lastCustomResolverPid_(0),
 			lastCustomResolverIterator_(),
 			survivalProcessChecked_(),
@@ -157,7 +159,10 @@ namespace LiveProfiler {
 					customResolverIt = pidToCustomResolver_.find(pid);
 					if (customResolverIt == pidToCustomResolver_.end()) {
 						auto pair = pidToCustomResolver_.emplace(pid,
-							customResolverAllocator_.allocate(pid));
+							customResolverAllocator_.allocate(
+								pid,
+								customSymbolNamePath_,
+								customSymbolNameAllocator_));
 						customResolverIt = pair.first;
 					}
 					lastCustomResolverPid_ = pid;
@@ -183,6 +188,8 @@ namespace LiveProfiler {
 		// address -> custom symbol
 		std::unordered_map<pid_t, std::unique_ptr<LinuxProcessCustomSymbolResolver>> pidToCustomResolver_;
 		FreeListAllocator<LinuxProcessCustomSymbolResolver> customResolverAllocator_;
+		std::shared_ptr<std::string> customSymbolNamePath_;
+		std::shared_ptr<SingletonAllocator<std::string, SymbolName>> customSymbolNameAllocator_;
 		pid_t lastCustomResolverPid_;
 		decltype(pidToCustomResolver_)::iterator lastCustomResolverIterator_;
 

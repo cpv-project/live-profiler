@@ -33,12 +33,16 @@ namespace LiveProfiler {
 		}
 
 		/** For FreeListAllocator */
-		void reset(pid_t pid) {
+		void reset(
+			pid_t pid,
+			const std::shared_ptr<std::string>& path,
+			const std::shared_ptr<SingletonAllocator<std::string, SymbolName>>& symbolNameAllocator) {
 			pid_ = pid;
+			path_ = path;
+			symbolNameAllocator_ = symbolNameAllocator;
 			symbolNames_.clear();
 			symbolNamesUpdated_ = {};
 			symbolNamesPathBuffer_.clear();
-			path_ = nullptr;
 			line_.clear();
 			lastReadOffset_ = 0;
 		}
@@ -70,13 +74,13 @@ namespace LiveProfiler {
 		/** Constructor */
 		LinuxProcessCustomSymbolResolver() :
 			pid_(0),
+			path_(),
 			symbolNameAllocator_(),
 			symbolNames_(),
 			symbolNamesUpdated_(),
 			symbolNamesUpdateMinInterval_(
 				std::chrono::milliseconds(+DefaultSymbolNamesUpdateMinInterval)),
 			symbolNamesPathBuffer_(),
-			path_(),
 			line_(),
 			lastReadOffset_(0) { }
 
@@ -122,7 +126,6 @@ namespace LiveProfiler {
 				symbolNamesPathBuffer_.appendLongLong(pid_);
 				symbolNamesPathBuffer_.appendStr(suffix.data(), suffix.size());
 				symbolNamesPathBuffer_.appendNullTerminator();
-				path_ = std::make_shared<std::string>(symbolNamesPathBuffer_.data());
 			}
 			// parse lines
 			// check file.eof() can detect last line that didn't ends with '\n'
@@ -157,7 +160,7 @@ namespace LiveProfiler {
 					}
 				});
 				if (startAddress != 0 && symbolSize != 0 && !functionName.empty()) {
-					auto symbolName = std::make_shared<SymbolName>(std::move(functionName), path_);
+					auto symbolName = symbolNameAllocator_->allocate(std::move(functionName), path_);
 					symbolNames_.emplace_back(SymbolNameWithOffset({
 						std::move(symbolName),
 						static_cast<std::size_t>(startAddress),
@@ -180,12 +183,12 @@ namespace LiveProfiler {
 
 	protected:
 		pid_t pid_;
+		std::shared_ptr<std::string> path_;
 		std::shared_ptr<SingletonAllocator<std::string, SymbolName>> symbolNameAllocator_;
 		std::vector<SymbolNameWithOffset> symbolNames_;
 		std::chrono::high_resolution_clock::time_point symbolNamesUpdated_;
 		std::chrono::high_resolution_clock::duration symbolNamesUpdateMinInterval_;
 		StackBuffer<128> symbolNamesPathBuffer_;
-		std::shared_ptr<std::string> path_;
 		std::string line_;
 		std::size_t lastReadOffset_;
 	};

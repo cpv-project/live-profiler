@@ -16,8 +16,10 @@ namespace LiveProfilerTests {
 			file << "70 1e customSymbolC (checkspace)" << std::endl;
 		}
 		{
+			auto customSymbolNamePath = std::make_shared<std::string>("perfmap");
+			auto customSymbolNameAllocator = std::make_shared<SingletonAllocator<std::string, SymbolName>>();
 			LinuxProcessCustomSymbolResolver resolver;
-			resolver.reset(::getpid());
+			resolver.reset(::getpid(), customSymbolNamePath, customSymbolNameAllocator);
 			auto symbolA = resolver.resolve(0x30, false);
 			auto symbolAA = resolver.resolve(0x49, false);
 			auto symbolB = resolver.resolve(0x51, false);
