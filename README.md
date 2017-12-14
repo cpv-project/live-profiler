@@ -1,5 +1,6 @@
 # Header only library for real time performance analysis
 
+[![Codacy Badge](https://api.codacy.com/project/badge/Grade/ea4832029db94f8eb580f7cfd1907148)](https://www.codacy.com/app/303248153/live-profiler?utm_source=github.com&utm_medium=referral&utm_content=cpv-project/live-profiler&utm_campaign=badger)
 [![Build Status](https://travis-ci.org/cpv-project/live-profiler.svg?branch=master)](https://travis-ci.org/cpv-project/live-profiler)
 [![license](https://img.shields.io/github/license/cpv-project/live-profiler.svg)]() 
 [![GitHub release](https://img.shields.io/github/release/cpv-project/live-profiler.svg)]()
