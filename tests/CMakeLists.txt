@@ -8,9 +8,9 @@ include_directories(../include)
 set(CMAKE_VERBOSE_MAKEFILE TRUE)
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Wextra -O3 -g --std=c++14 -fno-omit-frame-pointer")
 
-if (WIN32)
+if (MINGW)
 	target_link_libraries(${PROJECT_NAME} pthread)
-elseif (UNIX AND NOT WIN32)
+elseif (UNIX)
 	target_link_libraries(${PROJECT_NAME} pthread bfd)
 endif ()
 
