@@ -1,3 +1,4 @@
+#if defined(__linux__)
 #include <iostream>
 #include <cassert>
 #include <memory>
@@ -46,4 +47,10 @@ namespace LiveProfilerTests {
 		}
 	}
 }
-
+#else // defined(__linux__)
+namespace LiveProfilerTests {
+	void testLinuxEpollDescriptor() {
+		// unsupported on other platform
+	}
+}
+#endif // defined(__linux__)

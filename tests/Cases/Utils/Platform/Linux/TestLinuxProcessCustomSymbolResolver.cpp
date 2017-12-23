@@ -1,3 +1,4 @@
+#if defined(__linux__)
 #include <unistd.h>
 #include <iostream>
 #include <cassert>
@@ -37,4 +38,10 @@ namespace LiveProfilerTests {
 		::unlink(path.c_str());
 	}
 }
-
+#else // defined(__linux__)
+namespace LiveProfilerTests {
+	void testLinuxProcessCustomSymbolResolver() {
+		// unsupported on other platform
+	}
+}
+#endif // defined(__linux__)

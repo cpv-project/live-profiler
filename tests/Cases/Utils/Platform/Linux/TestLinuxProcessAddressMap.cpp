@@ -1,3 +1,4 @@
+#if defined(__linux__)
 #include <iostream>
 #include <cassert>
 #include <LiveProfiler/Utils/Allocators/SingletonAllocator.hpp>
@@ -49,4 +50,10 @@ namespace LiveProfilerTests {
 		}
 	}
 }
-
+#else // defined(__linux__)
+namespace LiveProfilerTests {
+	void testLinuxProcessAddressMap() {
+		// unsupported on other platform
+	}
+}
+#endif // defined(__linux__)

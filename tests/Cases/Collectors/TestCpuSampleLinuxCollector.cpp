@@ -1,3 +1,4 @@
+#if defined(__linux__)
 #include <iostream>
 #include <atomic>
 #include <thread>
@@ -58,4 +59,10 @@ namespace LiveProfilerTests {
 		testCpuSampleLinuxCollectorWithSelfProcess();
 	}
 }
-
+#else // defined(__linux__)
+namespace LiveProfilerTests {
+	void testCpuSampleLinuxCollector() {
+		// unsupported on other platform
+	}
+}
+#endif // defined(__linux__)

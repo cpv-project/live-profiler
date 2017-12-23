@@ -1,3 +1,4 @@
+#if defined(__linux__)
 #include <unistd.h>
 #include <iostream>
 #include <cassert>
@@ -56,4 +57,10 @@ namespace LiveProfilerTests {
 		testCpuSampleLinuxSymbolResolveInterceptorAlter();
 	}
 }
-
+#else // defined(__linux__)
+namespace LiveProfilerTests {
+	void testCpuSampleLinuxSymbolResolveInterceptor() {
+		// unsupported on other platform
+	}
+}
+#endif // defined(__linux__)

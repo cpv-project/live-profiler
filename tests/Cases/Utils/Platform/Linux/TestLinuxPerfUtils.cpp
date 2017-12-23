@@ -1,3 +1,4 @@
+#if defined(__linux__)
 #include <unistd.h>
 #include <cassert>
 #include <iostream>
@@ -172,4 +173,10 @@ namespace LiveProfilerTests {
 		testLinuxPerfUtilsMonitorSample();
 	}
 }
-
+#else // defined(__linux__)
+namespace LiveProfilerTests {
+	void testLinuxPerfUtils() {
+		// unsupported on other platform
+	}
+}
+#endif // defined(__linux__)

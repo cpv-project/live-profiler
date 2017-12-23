@@ -64,8 +64,8 @@ this example program can analyze which functions have the higest CPU usage.
 
 First, install the required packages:
 
-- Ubuntu: `sudo apt-get install g++ binutils-dev`
-- Fedora: `su -c "dnf install gcc-c++ binutils-devel"`
+- Ubuntu: `sudo apt-get install g++ cmake binutils-dev`
+- Fedora: `su -c "dnf install gcc-c++ cmake binutils-devel"`
 
 Then, compile and run the example:
 
@@ -233,6 +233,12 @@ Now you should be able to write a minimal profiler,<br/>
 you can find more detailed information from the following documents.
 
 # Documents
+
+### Environement Setup & Testing
+
+- Ubuntu Setup & Testing ([Document](./docs/Setup/Ubuntu.md))
+- Fedora Setup & Testing ([Document](./docs/Setup/Fedora.md))
+- Windows Setup & Testing ([Document](./docs/Setup/Windows.md))
 
 ### Profiler
 

@@ -1,3 +1,4 @@
+#if defined(__linux__)
 #include <syscall.h>
 #include <cassert>
 #include <iostream>
@@ -54,4 +55,10 @@ namespace LiveProfilerTests {
 		testLinuxProcessUtilsIsProcessExists();
 	}
 }
-
+#else // defined(__linux__)
+namespace LiveProfilerTests {
+	void testLinuxProcessUtils() {
+		// unsupported on other platform
+	}
+}
+#endif // defined(__linux__)
