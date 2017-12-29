@@ -1,6 +1,6 @@
 # Environement Setup
 
-To use this library on windows, you need to install mingw from [here](https://sourceforge.net/projects/msys2).
+To use this library on windows, you need to install mingw from [here](https://sourceforge.net/projects/msys2).<br/>
 After you installed, please open "mingw64.exe" (don't use "msys2.exe") and execute the following commands: 
 
 ``` bash
